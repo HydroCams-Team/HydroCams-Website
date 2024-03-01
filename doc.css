@@ -1,3 +1,50 @@
 /* importing main styles.css for readability */
-@import "styles.css";
+@import "betterstyles.css";
 
+
+.docMain 
+{
+    display: grid;
+    /* background-color: rgb(151, 125, 125); */
+    align-items: start;
+    justify-self: normal;
+}
+
+.titleSection
+{
+    align-self: stretch;
+    text-align: center;
+
+}
+
+.flexRow
+{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.sectionTitle
+{
+    text-align: center;
+    border-bottom: solid 5px rgb(19, 76, 122);
+    margin: 0 0 1em 0;
+}
+
+h2.sectionTitle
+{
+    background: #29a9c9;
+}
+
+.docCard
+{
+    border: 2px solid rgb(48, 47, 95);
+    margin: 1em;
+    padding: 10px 20px 10px 20px;
+    background: #83ccdf;
+}
+
+.cardSection
+{
+    text-align: center;
+}
