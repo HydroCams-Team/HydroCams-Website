@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link rel="stylesheet" href="styles.css">
 
 <head>
@@ -8,19 +9,142 @@
   <link rel="icon" href="team_logo.JPEG" type="image">
 </head>
 
+<script src="enlarge_script.js"></script>
+
 <body>
   <header class="header">
-    <img src="logo.jpg">
-    <h1><div class="team_name">The FloodBusters Team</div></h1>
+    <img src="logo.png" class="logo">
+    <h1><div class="team_name">Team FloodBusters</div></h1>
+    <div class="gradient-line"></div>
+    
+    <nav class="nav-container">
+      <a href="index.html" class="nav-button">Home</a>
+      <a href="project.html" class="nav-button">Project Details</a>
+      <a href="sponsor.html" class="nav-button">Our Sponsor</a>
+      <a href="#team-section" class="nav-button">Our Team</a>
+      <a href="#documents-section" class="nav-button">Documents</a>
+
+
+      <!-- Add more buttons here as needed -->
+    </nav>
+    
   </header>
   
   <div class="center">
-    <div class="center-text">
-      <h2>Welcome to FloodBusters!</h2>
-      <h3>Our website will appear here soon.</h3>
+
+    <div class="enlarge main-section-flex jumbotron neon-blue-gradient-border">
+      <div class="text-container">
+        <h2>OUR MISSION</h2><br>
+        <h3>Flooding is the single most common and destructive natural disaster, causing over $3.7 billion in damage and claiming more than 120 lives annually across the United States. Nationwide, the frequency of disastrous flood incidents has more than doubled since 2000 and is expected to more than triple by 2050. Here in Coconino County, a recent analysis of post-wildfire flood risks has shown that local water flows could soon reach between 3x – 16x normal levels. The growing frequency of these natural disasters demonstrates the urgent need for an efficient, accurate, and innovative solution.</h3>
+        <h3>Our team, along with our sponsor, Dr. Eck Doerry, hope to address this catastrophe by designing and developing an online metrological workbench. This tool will utilize Computer Vision and techniques such as Structure-from-Motion to allow for easy, cheap, and efficient monitoring of water levels, allowing local entities to be immediately warned of potential flood dangers. The current field of flood detection is rapidly becoming outdated -- our team hopes to revolutinize it.  </h3>
+      </div>
+      <div class="img-container">
+        <img src="flood.png" alt="Flood Image" class="section-img">
+      </div>
+    </div>
+
+    <div class="enlarge main-section jumbotron neon-blue-gradient-border" id="team-section">
+      <div class="text-container-full">
+        <h2>OUR TEAM</h2>
+      </div>
+
+      <div class="team-card-container">
+        
+        <div class="card enlarge-on-hover" style="width: 18rem;">
+          <img class="card-img-top" src="jennie.jpg" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Jennie Butch</h5>
+            <p class="card-text">Team Lead<br>SE Senior</p>
+            <a href="mailto: jvb58@nau.edu" class="nav-button btn btn-primary">Contact</a>
+          </div>
+        </div>
+        
+        <div class="card enlarge-on-hover" style="width: 18rem;">
+          <img class="card-img-top" src="dylan.jpg" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Dylan Anderson</h5>
+            <p class="card-text">Release Manager<br>CS Senior</p>
+            <a href="mailto: dia35@nau.edu" class="nav-button btn btn-primary">Contact</a>
+          </div>
+        </div>
+
+        <div class="card enlarge-on-hover" style="width: 18rem;">
+          <img class="card-img-top" src="noah.jpg" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Noah Gooby</h5>
+            <p class="card-text">Client Communicator<br>CS Senior</p>
+            <a href="mailto: njg234@nau.edu" class="nav-button btn btn-primary">Contact</a>
+          </div>
+        </div>
+        
+        <div class="card enlarge-on-hover" style="width: 18rem;">
+          <img class="card-img-top" src="jade.jpg" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Jade Meskill</h5>
+            <p class="card-text">Project Archivist<br>ACS Senior</p>
+            <a href="mailto: jim245@nau.edu" class="nav-button btn btn-primary">Contact</a>
+          </div>
+        </div>
+
+        <div class="card enlarge-on-hover" style="width: 18rem;">
+          <img class="card-img-top" src="nate.jpg" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">Nathan Hill</h5>
+            <p class="card-text">Project Architect<br>ACS Senior</p>
+            <a href="mailto: ndh89@nau.edu" class="nav-button btn btn-primary">Contact</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="enlarge main-section jumbotron neon-blue-gradient-border" id="documents-section">
+      <div class="text-container-full">
+        <h2>DOCUMENTS</h2>
+      </div>
+
+      <div class="pdf-grid">
+
+        <div class="pdf-item enlarge-on-hover">
+          <object data="Team_Inventory.pdf" type="application/pdf">
+          </object>
+          <a class="nav-button" href="Team_Inventory.pdf" download>Team Inventory</a>
+        </div>
+
+        <div class="pdf-item enlarge-on-hover">
+          <object data="Team_Standards.pdf" type="application/pdf">
+          </object>
+          <a class="nav-button" href="Team_Standards.pdf" download>Team Standards</a>
+        </div>
+
+        <div class="pdf-item enlarge-on-hover">
+          <object data="Mini_Intro.pdf" type="application/pdf">
+          </object>
+          <a class="nav-button" href="Mini_Intro.pdf" download>Mini Intro</a>
+        </div>
+
+        <div class="pdf-item enlarge-on-hover">
+          <object data="Tech_Feasibility.pdf" type="application/pdf">
+          </object>
+          <a class="nav-button" href="Tech_Feasibility.pdf" download>Technological Feasibility</a>
+        </div>
+
+        <div class="pdf-item enlarge-on-hover">
+          <object data="Requirements.pdf" type="application/pdf">
+          </object>
+          <a class="nav-button" href="Requirements.pdf" download>Requirements</a>
+        </div>
+
+        <div class="pdf-item enlarge-on-hover">
+          <object data="Design_Review_Presentation.pdf" type="application/pdf">
+          </object>
+          <a class="nav-button" href="Design_Review_Presentation.pdf" download>Design Review 1</a>
+        </div>
+
+      </div>
     </div>
   </div>
-  
+
   <footer>
     <div class="footer"></div>
   </footer>
