@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="demo_styles.css">
+    <title>Online Image Workbench</title>
+    <link rel="icon" href="../team_logo.JPEG" type="image">
+  </head>
+  
+  <body>
+    <header>
+      <img src="../logo.png" class="logo">
+      <h1>HydroCams Image Workbench</h1>
+      <div class="gradient-line"></div>
+    </header>
+
+   
+  <div class="workbench">
+    <div id="lefthand">
+      <input type="file" id="file-input" accept="image/*" style="display: none;">
+      <button class="nav-button neon-blue-gradient-border" id="upload-button">Upload Image</button>
+
+      <div id="image-container" class="neon-blue-gradient-border">
+        <canvas id="image-canvas"></canvas>
+      </div>
+    </div>
+    
+
+    <div id="controls-container" class="neon-blue-gradient-border">
+      <h3> Markup Tools </h3>
+      <button class="nav-button neon-blue-gradient-border" id="draw-button">Enable Drawing</button>
+      <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button>
+      <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
+      <h3> Measurements </h3>
+      <textarea style="width: 90%; align-self: center" rows="4" cols="25">
+        Enter measurements...
+        </textarea>
+      <h3> Other </h3>
+      <button class="nav-button neon-blue-gradient-border" id="download-button">Download Image</button>
+      <button class="nav-button neon-blue-gradient-border" id="zoom-in-button">Zoom In(in progress)</button>
+      <button class="nav-button neon-blue-gradient-border" id="zoom-out-button">Zoom Out(in progress)</button>
+
+    </div>
+  </div>
+  <script src="demo_script.js"></script>
+</body>
+</html>
