@@ -249,3 +249,11 @@ h3 {
 .enlarge-on-hover:hover {
     transform: scale(1.05);
 }
+
+#schedule {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%; /* Adjust width as needed */
+}
