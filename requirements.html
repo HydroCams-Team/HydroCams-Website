@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="styles.css">
+
+<head>
+  <title>FloodBusters</title>
+  <link rel="icon" href="team_logo.JPEG" type="image">
+</head>
+
+<script src="enlarge_script.js"></script>
+
+<body>
+  <header class="header">
+    <img src="logo.png" class="logo">
+    <h1><div class="team_name">Team FloodBusters</div></h1>
+    <div class="gradient-line"></div>
+    
+    <nav class="nav-container">
+      <a href="index.html" class="nav-button">Home</a>
+      <a href="project.html" class="nav-button">Project Details</a>
+      <a href="sponsor.html" class="nav-button">Our Sponsor</a>
+      <a href="index.html#team-section" class="nav-button">Our Team</a>
+      <a href="schedule.html" class="nav-button">Our Schedule</a>
+      <a href="index.html#documents-section" class="nav-button">Documents</a>
+      <a href="requirements.html" class="nav-button">Requirements</a>
+    </nav>
+  </header>
+
+  <div class="center">
+   <div class="enlarge main-section jumbotron">
+      <div class="text-container-full" style="width: 90%">
+        <h1>High-Level Requirements</h1>
+        <h3>In order to address the problems presented in <a style="color: rgb(175, 243, 255); font-size: 22px" href=index.html>our mission</a>, we have outlined a solution that will greatly decrease the time and complexity required to set up and configure the current system. Our solution consists of: An image workbench to allow for image manipulation and marker identification, a computer vision program to identify markers automatically, a structure from motion component to calculate 3D distances, and potentially a mobile application to be used on-site to take the pictures required for structure from motion. In specific, our solution will offer:</h3>
+        <h3 style="font-weight: 300; font-size: 22px;">In order to address the problems presented above, we have outlined a solution that will greatly decrease the time and complexity required to set up and configure the current system. Our solution consists of: An image workbench to allow for image manipulation and marker identification, a computer vision program to identify markers automatically, a structure from motion component to calculate 3D distances, and potentially a mobile application to be used on-site to take the pictures required for structure from motion. In specific, our solution will offer:</h3>
+        <ul style="font-weight: 300; font-size: 22px;"> <br>
+            <li>A comprehensive online image workbench:</li>
+            <ul>
+                <li>Local image upload functionality</li>
+                <li>Rectangular selection tool for marker identification</li>
+                <li>Modification / deletion of existing selections</li>
+                <li>Basic navigation (zoom, pan, etc.)</li>
+                <li>Local calibration file output</li>
+            </ul>
+            <li>Robust computer vision implementation:</li>
+            <ul>
+                <li>Automatic marker identification</li>
+                <li>Ability to tune for specific conditions (marker color, background, etc.)</li>
+            </ul>
+            <li>Structure-from-Motion utilization:</li>
+            <ul>
+                <li>Accurate 3D measurement between markers</li>
+            </ul>
+            <li>Lightweight mobile application:</li>
+            <ul>
+                <li>Basic camera functionality</li>
+                <li>Photo export to remote server</li>
+                <li>Potentially, offline image workbench and CV functionality</li>
+            </ul>
+            <li>Overall:</li>
+            <ul>
+                <li>Original and annotated image export to remote server</li>
+                <li>Calibration file export to remote server</li>
+            </ul> <br>
+        </ul>
+        <h3 style="font-weight: 300; font-size: 22px;">For our solution to be effective, multiple inputs are required. First and foremost, the images from the HydroCam installations themselves are required for any and all further steps. Additionally, some form of human input (or at least observation) is required to ensure proper marker identification. Computer vision could simplify this further, automating the marker identification process. That marker identification data will be exported in some data serialization format and stored on the remote server. The calibration file is then used to calibrate the camera to properly detect flooding. This approach to flood detection is seemingly novel and could greatly benefit people across the globe.</h3>
+        <h3 style="font-weight: 300; font-size: 22px;"> To learn more about our Requirements, view or download the <a style="color: rgb(175, 243, 255); font-size: 22px" href=index.html#requirements_pdf>Requirements PDF</a> on our home page.</h3>
+    </div>
+   </div>
+  </div>
+
+
+
+   <footer>
+      <div class="footer"></div>
+   </footer>
+  </body>
+</html>
