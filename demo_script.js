@@ -7,58 +7,217 @@ let startX, startY, currentX, currentY;
 let selectedRectIndex = null;
 const rectangles = [];
 const padding = 5; // Padding for the text
-let lineWidth = 4; // Variable for line width
+let lineWidth = 1; // Variable for line width
 let textSize = 16; // Variable for text size
 const minSelectableSize = 1; // Minimum size of selectable rectangle
 const tolerance = 5; // Tolerance zone around the rectangle
+let uploadedFiles = []; // To store the uploaded files (for single and multiple)
+let currentImageIndex = 0; // For tracking which image is being displayed
 
-// Handle image upload
+// Handle single image upload
 document.getElementById("upload-button").addEventListener("click", () => {
     document.getElementById("file-input").click();
 });
 
 document.getElementById("file-input").addEventListener("change", (event) => {
-    const file = event.target.files[0];
+    uploadedFiles = [event.target.files[0]]; // Store single uploaded file
+    currentImageIndex = 0;
+    updateCanvasImage(currentImageIndex);
+    updateNavigationButtons(); // Update button visibility
+});
+
+// Handle multiple image uploads
+document.getElementById("upload-multiple-button").addEventListener("click", () => {
+    document.getElementById("multi-file-input").click();
+});
+
+document.getElementById("multi-file-input").addEventListener("change", (event) => {
+    uploadedFiles = Array.from(event.target.files).slice(0, 6); // Store up to 6 files
+    currentImageIndex = 0;
+    updateCanvasImage(currentImageIndex);
+    updateNavigationButtons(); // Update button visibility
+    if (uploadedFiles.length > 1) {
+        document.getElementById("sfm-upload-button").style.display = 'inline-block';
+    } else {
+        document.getElementById("sfm-upload-button").style.display = 'none';
+    }
+});
+
+// Function to update the canvas with the current image
+function updateCanvasImage(index) {
+    const file = uploadedFiles[index];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             image.src = e.target.result;
-            image.onload = function() {
-                // Reset markers and selected index
+            image.onload = function () {
                 rectangles.length = 0;
                 selectedRectIndex = null;
-
-                // Clear canvas
                 canvas.width = image.width;
                 canvas.height = image.height;
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 context.drawImage(image, 0, 0);
-
-                // Set line width and text size based on image size
                 const smallerDim = Math.min(image.width, image.height);
-                lineWidth = Math.max(2, smallerDim / 100);
+                lineWidth = Math.max(1, smallerDim / 300);
                 textSize = Math.max(10, smallerDim / 25);
-
                 drawAll();
+                document.getElementById('image-counter').innerText = `${index + 1} / ${uploadedFiles.length}`;
             };
         };
         reader.readAsDataURL(file);
     }
+}
+
+// Arrow navigation for multiple images
+document.getElementById("prev-image").addEventListener("click", () => {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        updateCanvasImage(currentImageIndex);
+        updateNavigationButtons();
+    }
 });
 
-// Download the edited image
+document.getElementById("next-image").addEventListener("click", () => {
+    if (currentImageIndex < uploadedFiles.length - 1) {
+        currentImageIndex++;
+        updateCanvasImage(currentImageIndex);
+        updateNavigationButtons();
+    }
+});
+
+// Function to update the visibility of navigation buttons
+function updateNavigationButtons() {
+    const prevButton = document.getElementById("prev-image");
+    const nextButton = document.getElementById("next-image");
+    const imageCounter = document.getElementById('image-counter');
+    
+    // Show/hide buttons based on the number of uploaded images
+    if (uploadedFiles.length > 1) {
+        prevButton.style.display = currentImageIndex > 0 ? "block" : "none";
+        nextButton.style.display = currentImageIndex < uploadedFiles.length - 1 ? "block" : "none";
+    } else {
+        prevButton.style.display = "none";
+        nextButton.style.display = "none";
+    }
+    imageCounter.style.display = uploadedFiles.length > 1 ? "block" : "none";
+}
+
+// Submit the current image for processing
+document.getElementById("submit-button").addEventListener("click", () => {
+    const file = uploadedFiles[currentImageIndex]; // Get the current image
+    if (file) {
+        console.log("Uploading file:", file);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Send the image to the Flask server for processing
+        fetch("http://35.90.9.213:5000/upload", {
+            method: "POST",
+            body: formData,
+            mode: 'cors',
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to process the image');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Blobs detected:", data.blobs);
+
+            const imageUrl = data.image_url;
+            const fullImageUrl = "http://35.90.9.213" + imageUrl;
+
+            image.src = fullImageUrl;
+            image.onload = function () {
+                canvas.width = image.width;
+                canvas.height = image.height;
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(image, 0, 0);
+                rectangles.length = 0;
+
+                data.blobs.forEach((blob, index) => {
+                    const marker = {
+                        x: blob.x,
+                        y: blob.y,
+                        width: blob.width,
+                        height: blob.height,
+                    };
+                    rectangles.push(marker);
+                });
+
+                drawAll();
+                console.log("Canvas updated with processed image and markers.");
+            };
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to process the image.");
+        });
+    } else {
+        alert("Please upload an image first!");
+    }
+});
+
+document.getElementById("sfm-upload-button").addEventListener("click", () => {
+    if (uploadedFiles.length > 1) {
+        console.log("Submitting files for SfM:", uploadedFiles);
+
+        const formData = new FormData();
+        uploadedFiles.forEach((file, index) => {
+            formData.append("file" + index, file); // Append each image to the FormData object
+        });
+
+        // Send the images to the Flask server for SfM processing
+        fetch("http://35.90.9.213:5000/sfm_upload", {
+            method: "POST",
+            body: formData,
+            mode: 'cors'  // Mode to handle CORS
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to process images for SfM');
+            }
+            return response.json(); // Parse the JSON response
+        })
+        .then(data => {
+            console.log("SfM result received:", data);
+            const points3D = data["3D_points"];
+            display3DPoints(points3D);  // Display or handle the 3D points
+            window.location.href = "http://35.90.9.213:5000/visualize";
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to process images for SfM.");
+        });
+        
+    } else {
+        alert("Please upload multiple images first!");
+    }
+});
+
+function display3DPoints(points3D) {
+    // Example: Log the 3D points (this can be replaced with a 3D visualization library like three.js)
+    console.log("3D points from SfM:", points3D);
+}
+
+
+
 document.getElementById("download-button").addEventListener("click", () => {
-    drawAll();
-    // Create a temporary link element
-    const link = document.createElement("a");
-    link.download = "edited-image.png"; // Set the download filename
-    link.href = canvas.toDataURL();
-    document.body.appendChild(link);
-    link.click(); // Trigger the download
-    document.body.removeChild(link); // Remove the link element
+    canvas.toBlob((blob) => {
+        const link = document.createElement("a");
+        link.download = "edited-image.jpg";
+        link.href = URL.createObjectURL(blob);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, "image/jpeg", 0.95);
 });
 
-// Toggle drawing mode
 const drawButton = document.getElementById("draw-button");
 drawButton.addEventListener("click", () => {
     isDrawingEnabled = !isDrawingEnabled;
@@ -76,7 +235,6 @@ canvas.addEventListener("mousedown", (event) => {
         startY = y;
         isDrawing = true;
     } else {
-        // Check if a rectangle was clicked
         const clickedRectIndex = getClickedRectangle(x, y);
         if (clickedRectIndex !== null) {
             selectedRectIndex = clickedRectIndex;
@@ -118,7 +276,6 @@ document.getElementById("save-button").addEventListener("click", () => {
     }
 });
 
-// Delete the selected rectangle
 document.getElementById("delete-button").addEventListener("click", () => {
     if (selectedRectIndex !== null) {
         rectangles.splice(selectedRectIndex, 1);
@@ -142,16 +299,14 @@ function drawAll() {
         const textWidth = context.measureText(text).width;
         const textHeight = textSize;
 
-        // Draw black rectangle as background for text
         context.fillStyle = "black";
         context.fillRect(
-            rect.x + rect.width + padding, 
-            rect.y + rect.height - padding - textHeight, 
-            textWidth + 4, // Small margin around the text
-            textHeight + 4 // Small margin around the text
+            rect.x + rect.width + padding,
+            rect.y + rect.height - padding - textHeight,
+            textWidth + 4,
+            textHeight + 4
         );
 
-        // Draw white text
         context.fillStyle = "white";
         context.fillText(text, rect.x + rect.width + padding + 2, rect.y + rect.height - padding - 2);
     });
@@ -160,15 +315,40 @@ function drawAll() {
 function getClickedRectangle(x, y) {
     for (let i = 0; i < rectangles.length; i++) {
         const rect = rectangles[i];
-        // Apply a tolerance zone around the rectangle
         const x1 = Math.min(rect.x, rect.x + rect.width) - tolerance;
         const x2 = Math.max(rect.x, rect.x + rect.width) + tolerance;
         const y1 = Math.min(rect.y, rect.y + rect.height) - tolerance;
         const y2 = Math.max(rect.y, rect.y + rect.height) + tolerance;
-        if (x >= x1 && x <= x2 &&
-            y >= y1 && y <= y2) {
+        if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
             return i;
         }
     }
     return null;
 }
+
+// Event handler for marker clicks
+canvas.addEventListener("click", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+
+    const clickedRectIndex = getClickedRectangle(x, y);
+    if (clickedRectIndex !== null) {
+        selectedRectIndex = clickedRectIndex;
+        const clickedRect = rectangles[clickedRectIndex];
+        const area = clickedRect.width * clickedRect.height;
+
+        document.getElementById("marker-details").innerHTML = `
+            <p>Marker ${clickedRectIndex + 1} Details:</p>
+            <p>X: ${clickedRect.x}px</p>
+            <p>Y: ${clickedRect.y}px</p>
+            <p>Width: ${clickedRect.width}px</p>
+            <p>Height: ${clickedRect.height}px</p>
+            <p>Area: ${area}px²</p>
+        `;
+        drawAll();
+    } else {
+        selectedRectIndex = null;
+        document.getElementById("marker-details").innerHTML = "<p>No marker selected</p>";
+    }
+});
