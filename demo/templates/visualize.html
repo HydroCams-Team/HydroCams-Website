@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Visualization</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+
+    <!-- Import Three.js core -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+</head>
+<body>
+    <h1>3D Points Visualization</h1>
+    <div id="visualization-container"></div>
+
+    <script>
+        // Fetch the 3D points from the server
+        fetch('/get_3d_points')
+            .then(response => response.json())
+            .then(data => {
+                const points3D = data['3D_points'];
+                visualizePoints(points3D);
+            })
+            .catch(error => console.error('Error fetching 3D points:', error));
+
+        // Function to visualize points using Three.js
+        function visualizePoints(points3D) {
+            // Set up the scene, camera, and renderer
+            const scene = new THREE.Scene();
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(0, 1, 1).normalize();
+            scene.add(light);
+            const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Create geometry for the 3D points
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+
+            points3D.forEach(point => {
+                vertices.push(point[0], point[1], point[2]);
+            });
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+            // Create the points material and add them to the scene
+            const material = new THREE.PointsMaterial({ color: 0x00ff00, size: 0.1 });
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+
+            // Set up camera position
+            camera.position.set(0, 10, 35);  // For example, higher Y and Z values provide depth
+            camera.lookAt(0, 0, 0);  // Ensure the camera is looking at the center
+
+
+
+            // Set up OrbitControls to allow the user to navigate the scene
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;  // Smooth damping effect
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.maxDistance = 100;  // Limit how far the user can zoom out
+            controls.minDistance = 1;  // Limit how close the user can zoom in
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Update controls each frame
+                controls.update();
+
+                // Render the scene
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        }
+    </script>
+</body>
+</html>
