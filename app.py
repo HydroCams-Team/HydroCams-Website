@@ -20,39 +20,96 @@ os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 def send_processed_file(filename):
     return send_from_directory(PROCESSED_FOLDER, filename)
 
+# Utility function to convert hex color to RGB
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+# Process image and detect blobs with the selected color
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
-        response = make_response(jsonify({'error': 'No file part in the request'}), 400)
-        response.headers['Access-Control-Allow-Origin'] = '*'  # Adding CORS header explicitly
-        return response
+        return make_response(jsonify({'error': 'No file part in the request'}), 400)
     
     file = request.files['file']
     if file.filename == '':
-        response = make_response(jsonify({'error': 'No selected file'}), 400)
-        response.headers['Access-Control-Allow-Origin'] = '*'  # Adding CORS header explicitly
-        return response
+        return make_response(jsonify({'error': 'No selected file'}), 400)
+
+    # Get the selected color from the form
+    hex_color = request.form.get('color')
+    tolerance = int(request.form.get('tolerance', 7))  # Default tolerance is 7 if not provided
+    contour_area = int(request.form.get('contour_area', 350))  # Default contour area is 350 if not provided
+
+    if not hex_color:
+        return make_response(jsonify({'error': 'No color selected'}), 400)
+
+    # Convert hex to RGB, then to HSV
+    rgb_color = hex_to_rgb(hex_color)
+    hsv_color = cv2.cvtColor(np.uint8([[rgb_color]]), cv2.COLOR_RGB2HSV)[0][0]
 
     # Save the uploaded file
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    # Process the image using detect_red_blobs function
+    # Process the image using blob detection with the selected color
     processed_file_path = os.path.join(PROCESSED_FOLDER, 'processed_' + file.filename)
-    image = cv2.imread(file_path)
+    print(f"Processing image with color: {hex_color} and tolerance: {tolerance}")  # Debugging statement
+    print(f"Selected contour area: {contour_area}")  # Debugging statement
+    print(f"Saving processed image to: {processed_file_path}")  # Debugging statement
 
-    # Call detect_red_blobs instead of process_image
-    processed_image, detected_blobs = detect_red_blobs(image)
+    image = cv2.imread(file_path)
+    processed_image, detected_blobs = detect_blobs_with_color(image=cv2.imread(file_path), 
+                                                              hsv_color=hsv_color, 
+                                                              tolerance=tolerance, 
+                                                              contour_area=contour_area)
 
     # Save the processed image
-    cv2.imwrite(processed_file_path, processed_image, [cv2.IMWRITE_JPEG_QUALITY, 75])
+    cv2.imwrite(processed_file_path, processed_image)
 
-    # Return both the processed image (as a file) and the detected blobs (as JSON)
+    if not os.path.exists(processed_file_path):
+        print(f"Error: Processed image was not saved to: {processed_file_path}")
+    else:
+        print(f"Processed image successfully saved to: {processed_file_path}")
+
     response = {
-        'blobs': detected_blobs,  # Include blob data in response
-        'image_url': '/demo/processed/processed_' + file.filename  # Path to processed image
+        'blobs': detected_blobs,
+        'image_url': '/demo/processed/' + 'processed_' + file.filename
     }
     return jsonify(response)
+
+# Blob detection function based on the selected color
+def detect_blobs_with_color(image, hsv_color, tolerance, contour_area):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # Define a color range based on the selected color
+    lower_bound = np.array([hsv_color[0] - tolerance, 100, 100])
+    upper_bound = np.array([hsv_color[0] + tolerance, 255, 255])
+
+    mask = cv2.inRange(hsv, lower_bound, upper_bound)
+    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    detected_blobs = []
+    for i, contour in enumerate(contours):
+        if cv2.contourArea(contour) > contour_area:  # Use dynamic contour area threshold
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # Check if the width and height are within a factor of 2
+            if 0.67 <= w / h <= 1.5:  # 1 / 1.5 = 0.67
+                cv2.drawContours(image, [contour], -1, (0, 255, 0), 2)
+                
+                # Add the contour points to the list
+                contour_points = contour[:, 0, :].tolist()  # Extract (x, y) points
+                detected_blobs.append({
+                    'blob_number': i + 1,
+                    'x': x,
+                    'y': y,
+                    'width': w,
+                    'height': h,
+                    'contour': contour_points
+                })
+
+    return image, detected_blobs
+
+
 
 @app.route('/sfm_upload', methods=['POST'])
 def sfm_upload():
@@ -88,56 +145,28 @@ def visualize():
     """Serve the visualization page for the 3D points."""
     return render_template('visualize.html')
 
-def detect_red_blobs(image):
-    """Detect red blobs and draw rectangles around them."""
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    # Define the range for red color in HSV
-    lower_red1 = (0, 150, 150)
-    upper_red1 = (10, 255, 255)
-    lower_red2 = (170, 150, 150)
-    upper_red2 = (180, 255, 255)
-
-    # Create masks for red detection
-    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
-    red_mask = cv2.bitwise_or(mask1, mask2)
-
-    # Find contours (blobs) in the mask
-    contours, _ = cv2.findContours(red_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Log the number of detected blobs
-    detected_blobs = []  # This will hold the blob details to return to the client
-
-    # Draw rectangles around significant blobs and collect their positions
-    for i, contour in enumerate(contours):
-        if cv2.contourArea(contour) > 500:  # Only consider significant blobs
-            x, y, w, h = cv2.boundingRect(contour)
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            
-            # Add blob details to the list
-            detected_blobs.append({
-                'blob_number': i + 1,
-                'x': x,
-                'y': y,
-                'width': w,
-                'height': h,
-                'area': cv2.contourArea(contour)
-            })
-
-    return image, detected_blobs  # Return both the processed image and blob details
-
 def run_sfm(images):
     """
     Run Structure-from-Motion on a set of images and return the 3D reconstruction.
     """
     try:
-        # Convert images to grayscale and extract features using SIFT (or ORB, etc.)
+        # Camera intrinsic matrix for a typical Samsung Galaxy camera
+        focal_length = 2750  # This is the focal length in pixels
+        cx = 2000  # Principal point (half the width of a 4000px wide image)
+        cy = 1500  # Principal point (half the height of a 3000px tall image)
+
+        # Camera intrinsic matrix (K)
+        K = np.array([[focal_length, 0, cx],
+                      [0, focal_length, cy],
+                      [0, 0, 1]])
+
         image_points = []
         keypoints_list = []
         descriptors_list = []
 
+        # Convert images to grayscale and extract features using SIFT (or ORB, etc.)
         for image in images:
+            print("Processing image...")
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             sift = cv2.SIFT_create()
             keypoints, descriptors = sift.detectAndCompute(gray, None)
@@ -145,8 +174,9 @@ def run_sfm(images):
             descriptors_list.append(descriptors)
             points = np.array([kp.pt for kp in keypoints], dtype=np.float32)
             image_points.append(points)
+            print(f"Detected {len(keypoints)} keypoints in the image")
 
-        # Match features between images using FLANN based matcher
+        # Match features between the first two images using FLANN based matcher
         flann = cv2.FlannBasedMatcher_create()
         matches = flann.knnMatch(descriptors_list[0], descriptors_list[1], k=2)
 
@@ -156,35 +186,61 @@ def run_sfm(images):
             if m.distance < 0.75 * n.distance:
                 good_matches.append(m)
 
+        if len(good_matches) < 10:
+            print(f"Not enough good matches between images.")
+            return False, []
+
         # Extract the matched keypoints
         pts1 = np.float32([keypoints_list[0][m.queryIdx].pt for m in good_matches])
         pts2 = np.float32([keypoints_list[1][m.trainIdx].pt for m in good_matches])
 
-        # Camera intrinsic matrix
-        K = np.eye(3)
-        K[0, 0] = K[1, 1] = 1000  # Focal length (adjust as needed)
-        K[0, 2] = images[0].shape[1] / 2  # Principal point x
-        K[1, 2] = images[0].shape[0] / 2  # Principal point y
-
-        # Essential matrix
+        # Compute the Essential matrix using the camera intrinsic matrix
         E, mask = cv2.findEssentialMat(pts1, pts2, K, method=cv2.RANSAC, prob=0.999, threshold=1.0)
 
-        # Recover pose
+        # Recover the pose from the Essential matrix
         _, R, t, mask = cv2.recoverPose(E, pts1, pts2, K)
 
-        # Triangulate points
-        proj_matrix1 = np.hstack((np.eye(3), np.zeros((3, 1))))
-        proj_matrix2 = np.hstack((R, t))
+        # Check the translation magnitude
+        translation_magnitude = np.linalg.norm(t)
+        print(f"Translation magnitude: {translation_magnitude}")
+        print(f"Translation vector: {t.ravel()}")
+
+
+        # Triangulate points to obtain 3D coordinates
+        proj_matrix1 = np.hstack((np.eye(3), np.zeros((3, 1))))  # Projection matrix of the first camera
+        proj_matrix2 = np.hstack((R, t))  # Projection matrix of the second camera
         points_4d = cv2.triangulatePoints(proj_matrix1, proj_matrix2, pts1.T, pts2.T)
 
-        # Convert from homogeneous to 3D coordinates
+        # Convert from homogeneous coordinates to 3D coordinates
         points_3d = points_4d[:3] / points_4d[3]
 
+        # Debugging: print some of the 3D points to check if they have depth
+        print("Sample triangulated points (X, Y, Z):")
+        for i in range(min(10, points_3d.shape[1])):
+            print(f"Point {i}: X={points_3d[0][i]}, Y={points_3d[1][i]}, Z={points_3d[2][i]}")
+
+        # Check if Z values are reasonable (i.e., not all very close to zero)
+        z_values = points_3d[2, :]
+        if np.all(np.abs(z_values) < 1e-3):  # If all Z values are near zero, print a warning
+            print("Warning: All Z values are very small, indicating a flat reconstruction.")
+
+        # Return the 3D points for visualization
         return True, points_3d.T  # Transpose to get points in the correct format
 
     except Exception as e:
         print(f"Error in SfM: {e}")
         return False, []
+
+        
+def adjust_scale_based_on_known_object(points_3d):
+    """
+    Optional: Adjust the scale of the reconstructed 3D points based on a known object or size.
+    For example, if you know the real-world distance between two points, you can rescale the output.
+    """
+    # Implement your logic here (e.g., rescale the 3D points based on known distances)
+    # For now, returning a scale factor of 1
+    return 1.0
+
 
 @app.route('/favicon.ico')
 def favicon():
