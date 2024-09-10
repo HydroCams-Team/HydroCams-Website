@@ -30,65 +30,68 @@
 
         // Function to visualize points using Three.js
         function visualizePoints(points3D) {
-            // Set up the scene, camera, and renderer
-            const scene = new THREE.Scene();
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(0, 1, 1).normalize();
-            scene.add(light);
-            const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(0, 1, 1).normalize();
+    scene.add(light);
 
-            // Create geometry for the 3D points
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-            points3D.forEach(point => {
-                vertices.push(point[0], point[1], point[2]);
-            });
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
 
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    const zScaleFactor = 1000;  // Apply scaling to the Z-axis
 
-            // Create the points material and add them to the scene
-            const material = new THREE.PointsMaterial({ color: 0x00ff00, size: 0.1 });
-            const points = new THREE.Points(geometry, material);
-            scene.add(points);
+    // Add points with Z scaled by the zScaleFactor
+    points3D.forEach(point => {
+        vertices.push(point[0], point[1], point[2] * zScaleFactor);
+    });
 
-            // Set up camera position
-            camera.position.set(0, 10, 35);  // For example, higher Y and Z values provide depth
-            camera.lookAt(0, 0, 0);  // Ensure the camera is looking at the center
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+    // Material and point size adjustments
+    const material = new THREE.PointsMaterial({ color: 0x00ff00, size: 1 });
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    // Add axis helpers for better orientation
+    const axesHelper = new THREE.AxesHelper(50);
+    scene.add(axesHelper);
+
+    // Camera positioned for better viewing
+    camera.position.set(50, 50, 100);
+    camera.lookAt(0, 0, 0);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.maxDistance = 500;
+    controls.minDistance = 1;
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+
+    animate();
+}
 
 
 
-            // Set up OrbitControls to allow the user to navigate the scene
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;  // Smooth damping effect
-            controls.dampingFactor = 0.05;
-            controls.screenSpacePanning = false;
-            controls.maxDistance = 100;  // Limit how far the user can zoom out
-            controls.minDistance = 1;  // Limit how close the user can zoom in
 
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
 
-            // Animation loop
-            function animate() {
-                requestAnimationFrame(animate);
 
-                // Update controls each frame
-                controls.update();
-
-                // Render the scene
-                renderer.render(scene, camera);
-            }
-
-            animate();
-        }
     </script>
 </body>
 </html>

@@ -24,7 +24,116 @@ document.getElementById("file-input").addEventListener("change", (event) => {
     currentImageIndex = 0;
     updateCanvasImage(currentImageIndex);
     updateNavigationButtons(); // Update button visibility
+
+    if (uploadedFiles.length > 0) {
+        document.getElementById("submit-button").style.display = 'inline-block';
+    } else {
+        document.getElementById("submit-button").style.display = 'none';
+    }
 });
+
+const submitPrefsBtn = document.getElementById('submit-prefs');
+const toleranceSlider = document.getElementById('toleranceSlider');
+const toleranceValue = document.getElementById('toleranceValue');
+const colorPicker = document.getElementById('colorPicker');
+
+// Initialize variables to store selected preferences
+let selectedColor = colorPicker.value;
+let selectedTolerance = toleranceSlider.value;
+
+// Get the contour input field and preview button
+const contourInput = document.getElementById('contourArea');
+const previewContourBtn = document.getElementById('previewContourBtn');
+let previewVisible = false; // Track the visibility of the preview circle
+
+// Function to calculate radius based on contour area
+function getCircleRadiusFromArea(area) {
+    return Math.sqrt(area / Math.PI);
+}
+
+// Event listener for the preview button
+previewContourBtn.addEventListener('click', () => {
+    const contourArea = parseFloat(contourInput.value);  // Get the contour area from the input
+
+    if (isNaN(contourArea) || contourArea <= 0) {
+        alert("Please enter a valid contour area.");
+        return;
+    }
+
+    if (!previewVisible) {
+        // Calculate the radius of the circle
+        const radius = getCircleRadiusFromArea(contourArea);
+
+        // Clear previous drawings and draw the image
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+
+        // Draw a yellow circle to represent the contour size
+        context.beginPath();
+        context.arc(canvas.width / 2, canvas.height / 2, radius, 0, 2 * Math.PI);
+        context.strokeStyle = 'yellow';
+        context.lineWidth = 3;
+        context.stroke();
+        context.closePath();
+
+        // Update button to say "Hide"
+        previewContourBtn.textContent = 'Hide';
+        previewVisible = true;
+        console.log(`Previewing circle with radius: ${radius}px for contour area: ${contourArea}px²`);
+    } else {
+        // Clear the preview (hide the circle)
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);  // Redraw the original image without the circle
+
+        // Update button to say "Preview"
+        previewContourBtn.textContent = 'Preview';
+        previewVisible = false;
+        console.log("Hiding preview circle");
+    }
+});
+contourInput.addEventListener('input', () => {
+    submitPrefsBtn.textContent = 'Save';
+    submitPrefsBtn.disabled = false;
+    submitPrefsBtn.classList.remove('grayed-out');  // Remove the gray-out class
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0);  // Redraw the original image without the circle
+    previewContourBtn.textContent = 'Preview';
+    previewVisible = false;
+    console.log("Hiding preview circle");
+});
+
+// Update the displayed tolerance value as the slider is adjusted
+toleranceSlider.addEventListener('input', function() {
+    toleranceValue.textContent = toleranceSlider.value;
+    selectedTolerance = toleranceSlider.value;  // Update selected tolerance value
+    submitPrefsBtn.textContent = 'Save';
+    submitPrefsBtn.disabled = false;
+    submitPrefsBtn.classList.remove('grayed-out');  
+});
+
+// Event handler for color selection and tolerance submission
+document.getElementById('colorForm').addEventListener('submit', function(event) {
+    event.preventDefault();  // Prevent the default form submission
+    selectedColor = colorPicker.value;  // Update selected color
+    selectedTolerance = toleranceSlider.value;  // Update selected tolerance
+
+    submitPrefsBtn.textContent = 'Saved';
+    submitPrefsBtn.disabled = true;  // Disable the button
+    submitPrefsBtn.classList.add('grayed-out');
+
+    // Save preferences for later CV processing
+    console.log("Selected color for CV processing: " + selectedColor);
+    console.log("Selected tolerance for CV processing: " + selectedTolerance);
+    console.log("Selected contour area for CV processing: " + contourInput.value);
+});
+
+// Re-enable the submit button if the color is changed
+colorPicker.addEventListener('input', function() {
+    submitPrefsBtn.textContent = 'Save';
+    submitPrefsBtn.disabled = false;  // Enable the button
+    submitPrefsBtn.classList.remove('grayed-out');  // Remove the gray-out class
+});
+
 
 // Handle multiple image uploads
 document.getElementById("upload-multiple-button").addEventListener("click", () => {
@@ -38,6 +147,10 @@ document.getElementById("multi-file-input").addEventListener("change", (event) =
     updateNavigationButtons(); // Update button visibility
     if (uploadedFiles.length > 1) {
         document.getElementById("sfm-upload-button").style.display = 'inline-block';
+        document.getElementById("submit-button").style.display = 'inline-block';
+    } 
+    else if (uploadedFiles.length == 1) {
+        document.getElementById("submit-button").style.display = 'inline-block';
     } else {
         document.getElementById("sfm-upload-button").style.display = 'none';
     }
@@ -105,13 +218,27 @@ function updateNavigationButtons() {
 // Submit the current image for processing
 document.getElementById("submit-button").addEventListener("click", () => {
     const file = uploadedFiles[currentImageIndex]; // Get the current image
+    const selectedColor = document.getElementById('colorPicker').value;  // Get the selected color
+    const selectedTolerance = document.getElementById('toleranceSlider').value;  // Get the selected tolerance
+    const selectedContourArea = document.getElementById('contourArea').value;  // Get the selected contour area
+
     if (file) {
         console.log("Uploading file:", file);
+        console.log("Selected color:", selectedColor);  // Log the selected color
+        console.log("Selected tolerance:", selectedTolerance);  // Log the selected tolerance
+        console.log("Selected contour area:", selectedContourArea);  // Log the selected contour area
+
+        // Add blur and show loading spinner
+        document.getElementById("image-canvas").classList.add("blurred");
+        document.getElementById("loading-spinner").style.display = "block";
 
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("color", selectedColor);  // Append selected color
+        formData.append("tolerance", selectedTolerance);  // Append selected tolerance
+        formData.append("contour_area", selectedContourArea);  // Append selected contour area
 
-        // Send the image to the Flask server for processing
+        // Send the image and selected color to the Flask server for processing
         fetch("http://35.90.9.213:5000/upload", {
             method: "POST",
             body: formData,
@@ -146,26 +273,43 @@ document.getElementById("submit-button").addEventListener("click", () => {
                         y: blob.y,
                         width: blob.width,
                         height: blob.height,
+                        contour: blob.contour
                     };
                     rectangles.push(marker);
                 });
 
                 drawAll();
                 console.log("Canvas updated with processed image and markers.");
+
+                // Remove blur and hide loading spinner after processing
+                document.getElementById("image-canvas").classList.remove("blurred");
+                document.getElementById("loading-spinner").style.display = "none";
             };
         })
         .catch(error => {
             console.error("Error:", error);
             alert("Failed to process the image.");
+
+            // Remove blur and hide loading spinner after processing
+            document.getElementById("image-canvas").classList.remove("blurred");
+            document.getElementById("loading-spinner").style.display = "none";
         });
     } else {
         alert("Please upload an image first!");
     }
 });
 
+// Update color preview dynamically when color is selected
+document.getElementById('colorPicker').addEventListener('input', function(event) {
+    const selectedColor = event.target.value;
+});
+
 document.getElementById("sfm-upload-button").addEventListener("click", () => {
     if (uploadedFiles.length > 1) {
         console.log("Submitting files for SfM:", uploadedFiles);
+        // Add blur and show loading spinner
+        document.getElementById("image-canvas").classList.add("blurred");
+        document.getElementById("loading-spinner").style.display = "block";
 
         const formData = new FormData();
         uploadedFiles.forEach((file, index) => {
@@ -186,12 +330,16 @@ document.getElementById("sfm-upload-button").addEventListener("click", () => {
         })
         .then(data => {
             console.log("SfM result received:", data);
+            document.getElementById("image-canvas").classList.remove("blurred");
+            document.getElementById("loading-spinner").style.display = "none";
             const points3D = data["3D_points"];
             display3DPoints(points3D);  // Display or handle the 3D points
             window.location.href = "http://35.90.9.213:5000/visualize";
         })
         .catch(error => {
             console.error("Error:", error);
+            document.getElementById("image-canvas").classList.remove("blurred");
+            document.getElementById("loading-spinner").style.display = "none";
             alert("Failed to process images for SfM.");
         });
         
@@ -290,27 +438,43 @@ function drawAll() {
     context.lineWidth = lineWidth;
     context.font = `${textSize}px Arial`;
 
+    // Assuming you now have contours instead of rectangles
     rectangles.forEach((rect, index) => {
         context.strokeStyle = index === selectedRectIndex ? "red" : "green";
         context.lineWidth = lineWidth;
-        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
 
+        // Begin a new path for each contour
+        context.beginPath();
+        const contour = rect.contour;  // Assuming rect now has 'contour' instead of x, y, width, height
+        if (contour.length > 0) {
+            context.moveTo(contour[0][0], contour[0][1]);  // Move to the first point in the contour
+            contour.forEach(point => {
+                context.lineTo(point[0], point[1]);  // Draw lines between the points
+            });
+            context.closePath();  // Close the path
+            context.stroke();  // Actually draw the contour
+        }
+
+        // Now draw the marker text near the contour
         const text = `M${index + 1}`;
         const textWidth = context.measureText(text).width;
         const textHeight = textSize;
 
+        // Position the text near the first point in the contour (you can adjust as needed)
+        const firstPoint = contour[0];
         context.fillStyle = "black";
         context.fillRect(
-            rect.x + rect.width + padding,
-            rect.y + rect.height - padding - textHeight,
+            firstPoint[0] + padding,
+            firstPoint[1] - padding - textHeight,
             textWidth + 4,
             textHeight + 4
         );
 
         context.fillStyle = "white";
-        context.fillText(text, rect.x + rect.width + padding + 2, rect.y + rect.height - padding - 2);
+        context.fillText(text, firstPoint[0] + padding + 2, firstPoint[1] - padding - 2);
     });
 }
+
 
 function getClickedRectangle(x, y) {
     for (let i = 0; i < rectangles.length; i++) {
