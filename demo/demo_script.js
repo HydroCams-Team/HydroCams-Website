@@ -438,7 +438,6 @@ function drawAll() {
     context.lineWidth = lineWidth;
     context.font = `${textSize}px Arial`;
 
-    // Assuming you now have contours instead of rectangles
     rectangles.forEach((rect, index) => {
         context.strokeStyle = index === selectedRectIndex ? "red" : "green";
         context.lineWidth = lineWidth;
@@ -446,7 +445,9 @@ function drawAll() {
         // Begin a new path for each contour
         context.beginPath();
         const contour = rect.contour;  // Assuming rect now has 'contour' instead of x, y, width, height
-        if (contour.length > 0) {
+        if (contour == null) {
+            context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+        } else if (contour.length > 0) {
             context.moveTo(contour[0][0], contour[0][1]);  // Move to the first point in the contour
             contour.forEach(point => {
                 context.lineTo(point[0], point[1]);  // Draw lines between the points

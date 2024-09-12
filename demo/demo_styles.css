@@ -216,6 +216,7 @@ textarea {
     border-image: linear-gradient(to bottom right, #005a5c7a, #5900ff75) 1 stretch;
     border-image-slice: 1;
     color: rgb(206, 205, 205);
+    width: 80%;
 }
 
 /* Apply blur to the image container */
