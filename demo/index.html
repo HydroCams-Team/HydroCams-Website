@@ -16,34 +16,72 @@
       <div class="gradient-line"></div>
     </header>
 
-   
-  <div class="workbench">
-    <div id="lefthand">
-      <input type="file" id="file-input" accept="image/*" style="display: none;">
-      <button class="nav-button neon-blue-gradient-border" id="upload-button">Upload Image</button>
+    <div class="workbench">
+      <div id="lefthand">
+        <input type="file" id="file-input" accept="image/*" style="display: none;">
+        <input type="file" id="multi-file-input" accept="image/*" style="display: none;" multiple>
+        
+        <button class="nav-button neon-blue-gradient-border" id="upload-button">Upload Image</button>
+        <button class="nav-button neon-blue-gradient-border" id="upload-multiple-button">Upload Multiple Images</button>
+        
+        <div id="image-container" class="neon-blue-gradient-border" style="position: relative;">
+          <canvas id="image-canvas"></canvas>
+          <div id="image-counter" style="display: none;">1 / 1</div> <!-- Counter hidden initially -->
+          <button id="prev-image" class="arrow-button" style="display: none;">Previous</button> <!-- Hidden initially -->
+          <button id="next-image" class="arrow-button" style="display: none;">Next</button> <!-- Hidden initially -->
+          <div id="loading-spinner"></div> <!-- Spinner for loading -->
+       </div>
+      
 
-      <div id="image-container" class="neon-blue-gradient-border">
-        <canvas id="image-canvas"></canvas>
-      </div>
+        <button class="nav-button neon-blue-gradient-border" id="submit-button" style="margin-top: 10px; display: none;">Submit for CV Processing</button>
+        <button class="nav-button neon-blue-gradient-border" id="sfm-upload-button" style="margin-top: 10px; display:none;">Submit Multiple for SfM</button>
+      
     </div>
     
+      <div id="cv-controls-container" class="cv-controls-container neon-blue-gradient-border">
+        <h3>CV Options</h3>
+    
+        <form id="colorForm">
+          <div class="form-group">
+            <label for="colorPicker">Select a color:</label> <br> <br>
+            <input type="color" id="colorPicker" name="colorPicker" value="#ff0000"> <!-- Default is red -->
+          </div>
 
-    <div id="controls-container" class="neon-blue-gradient-border">
-      <h3> Markup Tools </h3>
-      <button class="nav-button neon-blue-gradient-border" id="draw-button">Enable Drawing</button>
-      <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button>
-      <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
-      <h3> Measurements </h3>
-      <textarea style="width: 90%; align-self: center" rows="4" cols="25">
-        Enter measurements...
-        </textarea>
-      <h3> Other </h3>
-      <button class="nav-button neon-blue-gradient-border" id="download-button">Download Image</button>
-      <button class="nav-button neon-blue-gradient-border" id="zoom-in-button">Zoom In(in progress)</button>
-      <button class="nav-button neon-blue-gradient-border" id="zoom-out-button">Zoom Out(in progress)</button>
+          <div class="form-group">
+            <label for="toleranceSlider">Select color range tolerance:</label> <br>
+            <input type="range" id="toleranceSlider" name="tolerance" min="0" max="25" value="7"> <!-- Default is 7 -->
+            <span id="toleranceValue">7</span> <!-- Display the current tolerance value -->
+          </div>
 
+          <!-- Contour Area Threshold -->
+          <div class="form-group">
+            <label for="contourArea">Enter contour lower bound (min area):</label>
+            <input type="number" id="contourArea" name="contourArea" min="0" value="350"> <!-- Default is 350 -->
+            <br><br>
+            <button type="button" id="previewContourBtn" class="nav-button neon-blue-gradient-border">Preview</button>
+          </div>
+
+            <button type="submit" id="submit-prefs" class="nav-button neon-blue-gradient-border">Save</button>
+        </form>
+     </div>
+  
+      
+      <div id="markup-controls-container" class="controls-container neon-blue-gradient-border">
+        <h3> Markup Tools </h3>
+        <button class="nav-button neon-blue-gradient-border" id="draw-button">Enable Drawing</button>
+        <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button>
+        <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
+    
+        <h3> Marker Details </h3>
+        <div id="marker-details">
+          <p>No marker selected</p>
+        </div>
+    
+        <h3> Other </h3>
+        <button class="nav-button neon-blue-gradient-border" id="download-button">Download Image</button>
+      </div>
     </div>
-  </div>
-  <script src="demo_script.js"></script>
-</body>
+  
+    <script src="demo_script.js"></script>
+  </body>
 </html>

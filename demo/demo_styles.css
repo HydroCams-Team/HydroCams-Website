@@ -77,14 +77,11 @@ h3 {
     cursor: crosshair;
 }
 
-#controls-container {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-top: 40px;
-    height: 600px;
-    text-align: center;
-    margin-right: 50px;
+.grayed-out {
+    background-color: #ccc !important;  /* Gray background */
+    color: #0d7eff !important;  /* Gray text */
+    border-color: #999;  /* Gray border */
+    cursor: not-allowed;  /* Disabled cursor */
 }
 
 h3 {
@@ -139,4 +136,114 @@ textarea {
     border: 2px solid transparent;
     border-image: linear-gradient(to bottom right, #005a5c7a, #5900ff75) 1 stretch;
     border-image-slice: 1;
+}
+
+#marker-details {
+    color: white; 
+    line-height: 40%;
+}
+
+#prev-image, #next-image {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#prev-image {
+    left: 10px;
+}
+
+#next-image {
+    right: 10px;
+}
+
+#image-counter {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px;
+    font-size: 14px;
+}
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 40px;
+    height: 600px;
+    text-align: center;
+    margin-right: 25px;
+    width: 225px;
+    color: white;
+}
+
+.cv-controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Space between each row */
+    margin-top: 40px;
+    height: 600px; /* Allow the container height to adjust */
+    text-align: center;
+    margin-right: 25px;
+    width: 225px;
+    color: white;
+
+    h3 {
+        margin-bottom: 0;
+    }
+}
+
+/* Ensure each child div occupies the full width */
+.form-group {
+    display: block;
+    width: 100%;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-bottom: 2px solid transparent;
+    border-image: linear-gradient(to bottom right, #005a5c7a, #5900ff75) 1 stretch;
+    border-image-slice: 1;
+}
+
+#contourArea {
+    background-color: rgba(95, 93, 255, 0.233);
+    border: 2px solid transparent;
+    border-image: linear-gradient(to bottom right, #005a5c7a, #5900ff75) 1 stretch;
+    border-image-slice: 1;
+    color: rgb(206, 205, 205);
+    width: 80%;
+}
+
+/* Apply blur to the image container */
+.blurred {
+    filter: blur(5px);
+    pointer-events: none;  /* Prevent interaction while loading */
+    opacity: 0.6;  /* Slight transparency effect */
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* Spinner styling */
+#loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 8px solid rgba(255, 255, 255, 0.2); /* Light border */
+    border-top: 8px solid white;  /* Spinning part */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    display: none;  /* Hidden by default */
+}
+
+/* Spin animation for the spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
