@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="demo_styles.css">
+    <link rel="stylesheet" href="styles/demo_styles.css">
     <title>Online Image Workbench</title>
-    <link rel="icon" href="../team_logo.JPEG" type="image">
+    <link rel="icon" href="images/team_logo.JPEG" type="image">
   </head>
   
   <body>
     <header>
-      <img src="../logo.png" class="logo">
+      <img src="images/logo.png" class="logo">
       <h1>HydroCams Image Workbench</h1>
       <div class="gradient-line"></div>
     </header>
@@ -43,21 +43,26 @@
     
         <form id="colorForm">
           <div class="form-group">
-            <label for="colorPicker">Select a color:</label> <br> <br>
+            <label for="colorPicker">Select a color:</label><br>
             <input type="color" id="colorPicker" name="colorPicker" value="#ff0000"> <!-- Default is red -->
           </div>
 
           <div class="form-group">
-            <label for="toleranceSlider">Select color range tolerance:</label> <br>
-            <input type="range" id="toleranceSlider" name="tolerance" min="0" max="25" value="7"> <!-- Default is 7 -->
+            <label for="tolerance-slider">Select color range tolerance:</label> <br>
+            <input type="range" id="tolerance-slider" name="tolerance" min="0" max="25" value="7"> <!-- Default is 7 -->
             <span id="toleranceValue">7</span> <!-- Display the current tolerance value -->
+          </div>
+
+          <div class="form-group">
+            <label for="markerSize">Marker Diameter (in inches):</label>
+            <input class="num-input" type="number" id="markerSize" value="5" step="0.1">
           </div>
 
           <!-- Contour Area Threshold -->
           <div class="form-group">
             <label for="contourArea">Enter contour lower bound (min area):</label>
-            <input type="number" id="contourArea" name="contourArea" min="0" value="350"> <!-- Default is 350 -->
-            <br><br>
+            <input type="number" class="num-input" id="contourArea" name="contourArea" min="0" value="350"> <!-- Default is 350 -->
+     
             <button type="button" id="previewContourBtn" class="nav-button neon-blue-gradient-border">Preview</button>
           </div>
 
@@ -65,23 +70,42 @@
         </form>
      </div>
   
-      
+      <!-- New Marker and Distance Info Container -->
+      <div id="marker-info-container" class="controls-container neon-blue-gradient-border" style="display: none;">
+        <h3>Marker Information</h3>
+        <div id="marker-list">
+            <p>No markers identified</p>
+        </div>
+        <h3>Measured Distances</h3>
+        <div id="distance-list">
+            <p>No distances measured</p>
+        </div>
+      </div>
+
+
       <div id="markup-controls-container" class="controls-container neon-blue-gradient-border">
-        <h3> Markup Tools </h3>
-        <button class="nav-button neon-blue-gradient-border" id="draw-button">Enable Drawing</button>
-        <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button>
+        <h3> Marker Tools </h3>
+
+        <!-- <button class="nav-button neon-blue-gradient-border" id="draw-button">Enable Drawing</button>
+        <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button> -->
+
         <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
     
         <h3> Marker Details </h3>
         <div id="marker-details">
           <p>No marker selected</p>
         </div>
-    
-        <h3> Other </h3>
-        <button class="nav-button neon-blue-gradient-border" id="download-button">Download Image</button>
       </div>
     </div>
   
-    <script src="demo_script.js"></script>
+    <script src="javascript/variables.js"></script>
+<script src="javascript/utility.js"></script>
+<script src="javascript/imageUpload.js"></script>
+<script src="javascript/uiControls.js"></script>
+<script src="javascript/submitImageProcessing.js"></script>
+<script src="javascript/canvasInteractions.js"></script>
+<script src="javascript/markerCalculations.js"></script>
+<script src="javascript/draw.js"></script>
+
   </body>
 </html>
