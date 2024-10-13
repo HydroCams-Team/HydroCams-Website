@@ -40,7 +40,6 @@ def upload_image():
     contour_area = int(request.form.get('contour_area', 350))  # Default contour area is 350 if not provided
     marker_size = float(request.form.get('marker_size', 5))  # Default to 5 inches if not provided
 
-
     if not hex_color:
         return make_response(jsonify({'error': 'No color selected'}), 400)
 
@@ -59,10 +58,20 @@ def upload_image():
     print(f"Saving processed image to: {processed_file_path}")  # Debugging statement
 
     image = cv2.imread(file_path)
-    processed_image, detected_markers = detect_markers(image=cv2.imread(file_path), 
-                                                              hsv_color=hsv_color, 
-                                                              tolerance=tolerance, 
-                                                              contour_area=contour_area)
+    
+    # (Optional) Camera calibration and distortion correction
+    camera_matrix = np.array([[1000, 0, image.shape[1]//2],
+                              [0, 1000, image.shape[0]//2],
+                              [0, 0, 1]], dtype=np.float32)
+    dist_coeffs = np.zeros((5, 1))  # Assuming no lens distortion; replace with actual calibration data if available
+
+    # Undistort the image if using camera calibration
+    undistorted_image = cv2.undistort(image, camera_matrix, dist_coeffs) if camera_matrix is not None else image
+
+    processed_image, detected_markers = detect_markers(image=undistorted_image, 
+                                                       hsv_color=hsv_color, 
+                                                       tolerance=tolerance, 
+                                                       contour_area=contour_area)
 
     # Save the processed image
     cv2.imwrite(processed_file_path, processed_image)
@@ -110,10 +119,6 @@ def detect_markers(image, hsv_color, tolerance, contour_area):
                     'contour': contour_points
                 })
 
-
-    # Calculate and log distances between each detected marker
-    calculate_distances_between_markers(detected_markers)
-
     return image, detected_markers
 
 # Conversion constant from inches to centimeters
@@ -146,9 +151,6 @@ def calculate_distances_between_markers(detected_markers, marker_diameter_in_inc
             })
 
     return distances
-
-
-
 
 
 @app.route('/favicon.ico')

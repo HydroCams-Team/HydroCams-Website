@@ -106,18 +106,8 @@ canvas.addEventListener("click", (event) => {
     const clickedRectIndex = getClickedRectangle(x, y);
     if (clickedRectIndex !== null) {
         selectedRectIndex = clickedRectIndex;
-        const clickedRect = rectangles[clickedRectIndex];
-        const area = clickedRect.width * clickedRect.height;
-
-        document.getElementById("marker-details").innerHTML = `
-            <p>Marker ${clickedRectIndex + 1} Details:</p>
-            <p>X: ${clickedRect.x}px</p>
-            <p>Y: ${clickedRect.y}px</p>
-            <p>Width: ${clickedRect.width}px</p>
-            <p>Height: ${clickedRect.height}px</p>
-            <p>Area: ${area}px²</p>
-        `;
-        drawAll();
+        updateMarkerDetails(selectedRectIndex); // Use the new function to update marker details
+        drawAll(); // Redraw the canvas
     } else {
         selectedRectIndex = null;
         document.getElementById("marker-details").innerHTML = "<p>No marker selected</p>";

@@ -43,7 +43,9 @@ function submitImageForProcessing() {
         })
         .then(data => {
             console.log("Markers detected:", data.markers);
-            console.log("Distances between markers (in inches):", data.distances);
+
+            // Add new markers to existing ones without clearing
+            addMarkersToExisting(data.markers);
 
             const imageUrl = data.image_url;
             const fullImageUrl = "http://34.209.140.249" + imageUrl;
@@ -54,28 +56,12 @@ function submitImageForProcessing() {
                 canvas.height = image.height;
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 context.drawImage(image, 0, 0);
-                rectangles.length = 0;
-
-                if (Array.isArray(data.markers) && data.markers.length > 0) {
-                    data.markers.forEach((marker, index) => {
-                        const marker_obj = {
-                            x: marker.x,
-                            y: marker.y,
-                            width: marker.width,
-                            height: marker.height,
-                            contour: marker.contour
-                        };
-                        rectangles.push(marker_obj);
-                    });
-                } else {
-                    console.log("No markers detected or data is undefined.");
-                }
 
                 drawAll();
                 console.log("Canvas updated with processed image and markers.");
 
-                // Now call updateMarkerInfo() after rectangles are updated
-                updateMarkerInfo(data.distances);
+                document.getElementById("download-json-button").style.display = 'inline-block'; // Show the download button
+                console.log("Download button displayed.");
 
                 // Remove blur and hide loading spinner after processing
                 document.getElementById("image-canvas").classList.remove("blurred");
@@ -93,6 +79,36 @@ function submitImageForProcessing() {
     } else {
         alert("Please upload an image first!");
     }
+}
+
+// Function to add new markers to the existing ones (without clearing)
+function addMarkersToExisting(newMarkers) {
+    const duplicateThreshold = 10; // Define a threshold in pixels
+
+    newMarkers.forEach(newMarker => {
+        // Check for duplicates based on proximity
+        const exists = rectangles.some(existingMarker => {
+            const dx = existingMarker.x - newMarker.x;
+            const dy = existingMarker.y - newMarker.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < duplicateThreshold;
+        });
+
+        if (!exists) {
+            rectangles.push({
+                x: newMarker.x,
+                y: newMarker.y,
+                width: newMarker.width,
+                height: newMarker.height,
+                contour: newMarker.contour
+            });
+        } else {
+            console.log(`Marker at (${newMarker.x.toFixed(2)}, ${newMarker.y.toFixed(2)}) is a duplicate and will not be added.`);
+        }
+    });
+
+    drawAll(); // Redraw the canvas with updated markers
+    updateMarkerInfo(); // Update marker information and distances
 }
 
 // Add event listener to submit button
