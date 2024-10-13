@@ -176,7 +176,8 @@ textarea {
     flex-direction: column;
     gap: 5px;
     margin-top: 40px;
-    height: 650px;
+    min-height: 650px;
+    max-height: auto;
     text-align: center;
     margin-right: 25px;
     width: 225px;
@@ -189,14 +190,13 @@ textarea {
     display: flex;
     flex-direction: column; /* Stack items vertically */
     align-items: center; /* Center items horizontally */
-    gap: 15px; /* Space between each item */
+    gap: 5px; /* Space between each item */
     height: 650px; /* Allow the container height to adjust based on its content */
     margin-top: 40px;
     text-align: center;
     margin-right: 25px;
     width: 225px;
     color: white;
-    padding: 15px;
     border: 2px solid #0056b3; /* Light blue border around the container */
     border-radius: 8px; /* Rounded corners for a softer look */
 }
