@@ -97,3 +97,50 @@ function updateNavigationButtons() {
     }
     imageCounter.style.display = uploadedFiles.length > 1 ? "block" : "none";
 }
+
+// Function to generate JSON file and trigger download
+function downloadMarkersAsJSON() {
+    // Create an array to store marker data
+    const markersData = rectangles.map((marker, index) => {
+        return {
+            markerNumber: `M${index + 1}`,
+            position: {
+                x: marker.x.toFixed(2),
+                y: marker.y.toFixed(2)
+            },
+            size: {
+                width: marker.width.toFixed(2),
+                height: marker.height.toFixed(2),
+                area: (marker.width * marker.height).toFixed(2)
+            }
+        };
+    });
+
+    // Recalculate distances to include them in the JSON
+    const distancesData = recalculateDistances();
+
+    // Combine markers and distances into one object
+    const jsonData = {
+        markers: markersData,
+        distances: distancesData.map(distance => ({
+            marker1: distance.marker1,
+            marker2: distance.marker2,
+            distance_inches: distance.distance_inches.toFixed(2)
+        }))
+    };
+
+    // Convert the JSON object to a string
+    const jsonString = JSON.stringify(jsonData, null, 2);
+
+    // Create a blob from the JSON string
+    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    // Create a link element and trigger download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'markers_data.json';
+    link.click();
+}
+
+// Event listener for the download button
+document.getElementById('download-json-button').addEventListener('click', downloadMarkersAsJSON);
