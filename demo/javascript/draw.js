@@ -2,15 +2,24 @@
 
 // Function to draw everything on the canvas
 function drawAll() {
-    // Clear the canvas and reset transformation
+    // clear the canvas before anything
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // save the context state
+    context.save()
+
+    // apply pan and zoom transformations
     context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
-    context.clearRect(0, 0, canvas.width / scale, canvas.height / scale);
-    context.drawImage(image, offsetX, offsetY, image.width * scale, image.height * scale);
 
-    context.lineWidth = lineWidth / scale; // Adjust line width according to scale
-    context.font = `${textSize / scale}px Arial`; // Adjust text size according to scale
+    // draw the transformed image
+    context.drawImage(image, 0, 0, image.width, image.height);
 
-    lines.length = 0; // Clear previous line data
+    // adjust lines and text with scale
+    context.lineWidth = lineWidth / scale;
+    context.font = `${textSize / scale}px Arial`;
+
+    // clear line data
+    lines.length = 0;
 
     // Draw lines between markers and label them with their length
     for (let i = 0; i < rectangles.length; i++) {
@@ -20,8 +29,8 @@ function drawAll() {
 
             // Draw a thicker green line between the markers
             context.beginPath();
-            context.moveTo(marker1.x * scale + offsetX, marker1.y * scale + offsetY);
-            context.lineTo(marker2.x * scale + offsetX, marker2.y * scale + offsetY);
+            context.moveTo(marker1.x, marker1.y);
+            context.lineTo(marker2.x, marker2.y);
             context.strokeStyle = 'green';
             context.lineWidth = 8 / scale; // Adjust line width for visibility while zoomed
             context.stroke();
@@ -32,8 +41,8 @@ function drawAll() {
             );
 
             // Label the line with the distance (small green text without background)
-            const midX = (marker1.x + marker2.x) / 2 * scale + offsetX;
-            const midY = (marker1.y + marker2.y) / 2 * scale + offsetY;
+            const midX = (marker1.x + marker2.x) / 2;
+            const midY = (marker1.y + marker2.y) / 2;
             context.font = '10px Arial'; // Set smaller font for distance label
             context.fillStyle = 'green';
             context.fillText(`${distance.toFixed(1)} px`, midX, midY);
@@ -57,19 +66,19 @@ function drawAll() {
         context.lineWidth = lineWidth;
 
         // Draw the contour or the bounding rectangle of the marker
-        context.beginPath();
         const contour = rect.contour;
 
         if (contour && contour.length > 0) {
-            context.moveTo(contour[0][0] * scale + offsetX, contour[0][1] * scale + offsetY);
+            context.beginPath();
+            context.moveTo(contour[0][0], contour[0][1]);
             contour.forEach(point => {
-                context.lineTo(point[0] * scale + offsetX, point[1] * scale + offsetY);
+                context.lineTo(point[0], point[1]);
             });
             context.closePath();
         } else {
             context.strokeRect(
-                rect.x * scale + offsetX,
-                rect.y * scale + offsetY,
+                rect.x,
+                rect.y,
                 rect.width * scale,
                 rect.height * scale
             );
@@ -78,8 +87,8 @@ function drawAll() {
 
         // Draw the label for each marker (e.g., "M1", "M2", etc.)
         const label = `M${index + 1}`;
-        const labelX = rect.x * scale + offsetX + padding;
-        const labelY = rect.y * scale + offsetY - padding - textSize;
+        const labelX = rect.x + padding;
+        const labelY = rect.y - padding - textSize;
 
         // Set the font before measuring the text
         context.font = `${textSize}px Arial`;
@@ -95,4 +104,7 @@ function drawAll() {
         context.fillStyle = "white";
         context.fillText(label, labelX, labelY);
     });
+
+    context.restore();
 }
+

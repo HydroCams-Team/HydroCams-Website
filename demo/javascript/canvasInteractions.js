@@ -64,18 +64,39 @@ canvas.addEventListener('wheel', function (event) {
     }
 });
 
+const panSpeed = 3; // Adjust this to control the panning speed
+
+let lastMouseX, lastMouseY; // Store the last mouse position during panning
+
 // Panning with mouse drag
 canvas.addEventListener('mousedown', (event) => {
+    const rect = canvas.getBoundingClientRect();
+
+    lastMouseX = event.clientX - rect.left;
+    lastMouseY = event.clientY - rect.top;
+    
     isPanning = true;
-    startPanX = event.clientX - offsetX;
-    startPanY = event.clientY - offsetY;
 });
 
 canvas.addEventListener('mousemove', (event) => {
     if (isPanning) {
-        offsetX = event.clientX - startPanX;
-        offsetY = event.clientY - startPanY;
-        drawAll(); // Redraw the canvas with the updated offset
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        // Calculate the change in position with panSpeed applied
+        const dx = (mouseX - lastMouseX) * panSpeed;
+        const dy = (mouseY - lastMouseY) * panSpeed;
+
+        // Update the offsets based on the delta movement
+        offsetX += dx;
+        offsetY += dy;
+
+        // Update the last mouse position
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+
+        drawAll(); // Redraw the canvas with updated offsets
     }
 });
 
