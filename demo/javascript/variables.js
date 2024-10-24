@@ -30,5 +30,9 @@ var startPanX, startPanY; // Starting position for panning
 
 // Preference variables
 var selectedColor;
-var selectedTolerance;
 var previewVisible = false; // Track the visibility of the preview circle
+
+// Hosting constants, ENSURE THESE MATCH THE CONSTANTS IN app.py
+const FLASK_HOST = 'localhost';
+const FLASK_PORT = 5000;
+const HTTP_SERVER_PORT_STRING = ':8000';
