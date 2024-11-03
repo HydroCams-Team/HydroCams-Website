@@ -4,6 +4,7 @@ import flask_cors
 import imutils
 import numpy as np
 import os
+import imutils
 
 
 # global variables
@@ -59,6 +60,7 @@ def upload_image():
     contour_area = int(flask.request.form.get('contour_area', 350))  # Default contour area is 350 if not provided
     marker_size = float(flask.request.form.get('marker_size', 5))  # Default to 5 inches if not provided
 
+
     if not hex_color:
         return flask.make_response(flask.jsonify({'error': 'No color selected'}), 400)
 
@@ -107,10 +109,6 @@ def upload_image():
         'image_url': '/processed/' + 'processed_' + file.filename
     }
 
-    return flask.jsonify(response)
-
-
-def detect_markers(image, hsv_color, contour_area):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Define a color range based on the selected color

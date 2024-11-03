@@ -84,6 +84,10 @@
         <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button> -->
 
         <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
+
+        <div id="marker-tools">
+          
+        </div>
       
         <h3> Marker Details </h3>
         <div id="marker-details">
@@ -104,6 +108,18 @@
 <script src="javascript/canvasInteractions.js"></script>
 <script src="javascript/markerCalculations.js"></script>
 <script src="javascript/draw.js"></script>
+
+
+  <!-- Zero Point Dimension Modal -->
+<div id="zeroPointModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeZeroPointModal">&times;</span>
+    <h2>Enter Zero Point Dimensions</h2>
+    <label for="zeroPointDimensionInput">Real-world diameter (in inches):</label>
+    <input type="number" id="zeroPointDimensionInput" min="0" step="0.01">
+    <button id="saveZeroPointDimension">Save</button>
+  </div>
+</div>
 
   </body>
 </html>
