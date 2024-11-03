@@ -1,13 +1,13 @@
 // uiControls.js
 
 const submitPrefsBtn = document.getElementById('submit-prefs');
-const toleranceSlider = document.getElementById('tolerance-slider');
-const toleranceValue = document.getElementById('toleranceValue');
+//const toleranceSlider = document.getElementById('tolerance-slider');
+//const toleranceValue = document.getElementById('toleranceValue');
 const colorPicker = document.getElementById('colorPicker');
 
 // Initialize variables to store selected preferences
 selectedColor = colorPicker.value;
-selectedTolerance = toleranceSlider.value;
+//selectedTolerance = toleranceSlider.value;
 
 // Get the contour input field and preview button
 const contourInput = document.getElementById('contourArea');
@@ -70,20 +70,12 @@ contourInput.addEventListener('input', () => {
     console.log("Hiding preview circle");
 });
 
-// Update the displayed tolerance value as the slider is adjusted
-toleranceSlider.addEventListener('input', function() {
-    toleranceValue.textContent = toleranceSlider.value;
-    selectedTolerance = toleranceSlider.value;  // Update selected tolerance value
-    submitPrefsBtn.textContent = 'Save';
-    submitPrefsBtn.disabled = false;
-    submitPrefsBtn.classList.remove('grayed-out');  
-});
 
 // Event handler for color selection and tolerance submission
 document.getElementById('colorForm').addEventListener('submit', function(event) {
     event.preventDefault();  // Prevent the default form submission
     selectedColor = colorPicker.value;  // Update selected color
-    selectedTolerance = toleranceSlider.value;  // Update selected tolerance
+    //selectedTolerance = toleranceSlider.value;  // Update selected tolerance
 
     submitPrefsBtn.textContent = 'Saved';
     submitPrefsBtn.disabled = true;  // Disable the button
@@ -91,7 +83,7 @@ document.getElementById('colorForm').addEventListener('submit', function(event) 
 
     // Save preferences for later CV processing
     console.log("Selected color for CV processing: " + selectedColor);
-    console.log("Selected tolerance for CV processing: " + selectedTolerance);
+    //console.log("Selected tolerance for CV processing: " + selectedTolerance);
     console.log("Selected contour area for CV processing: " + contourInput.value);
 });
 
