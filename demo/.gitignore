@@ -1,0 +1,10 @@
+# Python
+.venv
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Project directories
+processed
+uploads
