@@ -42,12 +42,15 @@
         <h3>CV Options</h3>
     
         <form id="colorForm">
-          <div class="form-group">
-            <label for="colorPicker">Select a color:</label><br>
-            <input type="color" id="colorPicker" name="colorPicker" value="#ff0000"> <!-- Default is red -->
+          <div class="form-group" id="colorPickerContainer" style="height: 150px; overflow-y: scroll; border-bottom: none !important;">
+            <label for="colorPicker">Select Color(s):</label>
+            <div class="color-item">
+              <input type="color" class="color-input" name="colorPicker" value="#ff0000"> <!-- Default is red -->
+            </div>
           </div>
+          <button type="button" id="addColorButton">+</button>
 
-          <div class="form-group">
+          <div class="form-group" style="border-top: 1px solid #0056b3; margin-top: 15px;">
             <label for="markerSize">Marker Diameter (in inches):</label>
             <input class="num-input" type="number" id="markerSize" value="5" step="0.1">
           </div>

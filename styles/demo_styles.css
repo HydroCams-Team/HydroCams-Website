@@ -121,6 +121,15 @@ textarea {
     text-decoration: none;
 }
 
+#addColorButton {
+    padding: 5px 10px;
+    color: white;
+    background-color: #2d737e;
+    transition: background-color 0.3s;
+    border-radius: 55px;
+    text-decoration: none;
+}
+
 .nav-button:hover {
     background-color: #47a0ad;
     color: white;
@@ -227,6 +236,32 @@ textarea {
     opacity: 0.6;  /* Slight transparency effect */
     transition: filter 0.3s ease, opacity 0.3s ease;
 }
+
+/* class for color input components */
+.color-input {
+    min-height: 30px;
+    margin: 3px 0 3px 0;
+    flex: 1; /* Allows color input to take up available space */
+}
+
+.color-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+  }
+  
+  .remove-color {
+    position: absolute;
+    left: 50px; /* Adjust this value if needed for spacing */
+    background-color: transparent;
+    border: none;
+    color: red;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
 
 button#submit-prefs, button#previewContourBtn {
     width: 80%; /* Make buttons a bit narrower to match the input width */

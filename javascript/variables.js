@@ -33,6 +33,6 @@ var selectedColor;
 var previewVisible = false; // Track the visibility of the preview circle
 
 // Hosting constants, ENSURE THESE MATCH THE CONSTANTS IN app.py
-const FLASK_HOST = 'localhost';
+const FLASK_HOST = '54.218.238.180';
 const FLASK_PORT = 5000;
-const HTTP_SERVER_PORT_STRING = ':8000';
+const HTTP_SERVER_PORT_STRING = ':5000';
