@@ -4,14 +4,14 @@
 function submitImageForProcessing() {
     const file = uploadedFiles[currentImageIndex]; // Get the current image
     const selectedColor = document.getElementById('colorPicker').value;  // Get the selected color
-    const selectedTolerance = document.getElementById('tolerance-slider').value;  // Get the selected tolerance
+    //const selectedTolerance = document.getElementById('tolerance-slider').value;  // Get the selected tolerance
     const selectedContourArea = document.getElementById('contourArea').value;  // Get the selected contour area
     const markerSize = document.getElementById('markerSize').value;  // Get the marker size in inches
 
     if (file) {
         console.log("Uploading file:", file);
         console.log("Selected color:", selectedColor);  // Log the selected color
-        console.log("Selected tolerance:", selectedTolerance);  // Log the selected tolerance
+        //console.log("Selected tolerance:", selectedTolerance);  // Log the selected tolerance
         console.log("Selected contour area:", selectedContourArea);  // Log the selected contour area
         console.log("Marker size (in inches):", markerSize);  // Log the marker size
 
@@ -22,12 +22,12 @@ function submitImageForProcessing() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("color", selectedColor);  // Append selected color
-        formData.append("tolerance", selectedTolerance);  // Append selected tolerance
+        //formData.append("tolerance", selectedTolerance);  // Append selected tolerance
         formData.append("contour_area", selectedContourArea);  // Append selected contour area
         formData.append("marker_size", markerSize);  // Append marker size to form data
 
         // Send the image and selected color to the Flask server for processing
-        fetch("http://34.209.140.249:5000/upload", {
+        fetch("http://54.218.238.180:5000/upload", {
             method: "POST",
             body: formData,
             mode: 'cors',
@@ -48,7 +48,7 @@ function submitImageForProcessing() {
             addMarkersToExisting(data.markers);
 
             const imageUrl = data.image_url;
-            const fullImageUrl = "http://34.209.140.249" + imageUrl;
+            const fullImageUrl = "http://54.218.238.180/" + imageUrl;
 
             image.src = fullImageUrl;
             image.onload = function () {
