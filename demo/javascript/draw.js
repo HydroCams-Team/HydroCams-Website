@@ -29,9 +29,44 @@ function drawAll() {
     context.restore();
 }
 
+function rgbToHsv(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, v = max;
+
+    const d = max - min;
+    s = max === 0 ? 0 : d / max;
+
+    if (max === min) {
+        h = 0; // achromatic
+    } else {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return { h: (h * 360).toFixed(1), s: (s * 100).toFixed(1), v: (v * 100).toFixed(1) };
+}
+
+
 // Function to draw markers with labels
 function drawMarkers(lineWidth, textSize) {
     rectangles.forEach((rect, index) => {
+        // Get HSV color from an example pixel within the marker area
+        const markerColorSample = context.getImageData(rect.x + rect.width / 2, rect.y + rect.height / 2, 1, 1).data;
+        const [r, g, b] = markerColorSample;
+
+        // Convert RGB to HSV
+        const hsvColor = rgbToHsv(r, g, b);
+
+        // Store HSV color in the marker object
+        rect.hsvColor = hsvColor;
         context.strokeStyle = "blue";
         context.lineWidth = lineWidth;
 

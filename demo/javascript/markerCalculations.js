@@ -151,7 +151,7 @@ function updateDistanceList(distances = []) {
 }
 
 
-// Function to recalculate distances between markers
+// Function to recalculate distances between markers using a single scale factor
 function recalculateDistances() {
     const distances = [];
     if (rectangles.length < 2 || zeroPointIndex === null || zeroPointDimension === null) {
@@ -162,28 +162,29 @@ function recalculateDistances() {
     const zeroMarker = rectangles[zeroPointIndex];
     const zeroDiameterPixels = (zeroMarker.width + zeroMarker.height) / 2;
 
-    // Calculate scale factor (inches per pixel) using the zero point
-    const scaleFactor = zeroPointDimension / zeroDiameterPixels;
+    // Calculate scale factor based on the known size of the zero point
+    const zeroPointScaleFactor = zeroPointDimension / zeroDiameterPixels;
 
-    console.log(`Scale factor based on zero point: ${scaleFactor.toFixed(4)} inches per pixel`);
+    console.log(`Zero Point Scale Factor: ${zeroPointScaleFactor.toFixed(4)} inches per pixel`);
 
+    // Loop through each marker to calculate its distance from the zero point
     rectangles.forEach((marker, index) => {
         if (index !== zeroPointIndex) {
             // Calculate the vertical distance (difference in Y-coordinates)
-            const pixelDistanceY = Math.abs(marker.y - zeroMarker.y);
+            const pixelDistanceY = Math.abs((marker.y + marker.height / 2) - (zeroMarker.y + zeroMarker.height / 2));
 
-            // Convert pixel distance to real-world distance using the scale factor
-            const distanceInches = pixelDistanceY * scaleFactor;
+            // Convert pixel distance to real-world distance using the zero point's scale factor
+            const distanceInches = pixelDistanceY * zeroPointScaleFactor;
 
             distances.push({
-                marker1: zeroPointIndex + 1, // Zero point marker number
+                marker1: zeroPointIndex + 1,
                 marker2: index + 1,
-                distance_inches: distanceInches,
-                pixel_distance: pixelDistanceY, // Store pixel vertical distance for drawing
+                distance_inches: parseFloat(distanceInches.toFixed(2)),
+                pixel_distance: pixelDistanceY, 
                 startX: marker.x + marker.width / 2,
-                startY: marker.y,
-                endX: marker.x + marker.width / 2,
-                endY: zeroMarker.y
+                startY: marker.y + marker.height / 2,
+                endX: zeroMarker.x + zeroMarker.width / 2,
+                endY: zeroMarker.y + zeroMarker.height / 2
             });
 
             console.log(`Vertical distance from Zero Point (M${zeroPointIndex + 1}) to M${index + 1}: ${distanceInches.toFixed(2)} inches`);
@@ -192,7 +193,6 @@ function recalculateDistances() {
 
     return distances;
 }
-
 
 
 // Function to highlight a specific marker on the canvas
