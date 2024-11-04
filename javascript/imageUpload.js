@@ -13,30 +13,17 @@ document.getElementById("file-input").addEventListener("change", (event) => {
 
     if (uploadedFiles.length > 0) {
         document.getElementById("submit-button").style.display = 'inline-block';
+        document.getElementById("reset-button").style.display = 'inline-block';
     } else {
         document.getElementById("submit-button").style.display = 'none';
+        document.getElementById("reset-button").style.display = 'none';
     }
 });
 
-// Handle multiple image uploads
-document.getElementById("upload-multiple-button").addEventListener("click", () => {
-    document.getElementById("multi-file-input").click();
-});
-
-document.getElementById("multi-file-input").addEventListener("change", (event) => {
-    uploadedFiles = Array.from(event.target.files).slice(0, 6); // Store up to 6 files
-    currentImageIndex = 0;
-    updateCanvasImage(currentImageIndex);
-    updateNavigationButtons(); // Update button visibility
-    if (uploadedFiles.length > 1) {
-        document.getElementById("sfm-upload-button").style.display = 'inline-block';
-        document.getElementById("submit-button").style.display = 'inline-block';
-    } 
-    else if (uploadedFiles.length == 1) {
-        document.getElementById("submit-button").style.display = 'inline-block';
-    } else {
-        document.getElementById("sfm-upload-button").style.display = 'none';
-    }
+// Reset button
+document.getElementById("reset-button").addEventListener("click", () => {
+    console.log("Resetting the canvas");
+    window.location.reload();
 });
 
 // Update canvas with the current image
@@ -99,7 +86,7 @@ function updateNavigationButtons() {
 }
 
 // Function to generate JSON file and trigger download
-function downloadMarkersAsJSON() {
+function downloadMarkersAsJSON(includeMarkerToMarkerDistances = true) {
     // Create an array to store marker data
     const markersData = rectangles.map((marker, index) => {
         return {
@@ -112,21 +99,32 @@ function downloadMarkersAsJSON() {
                 width: marker.width.toFixed(2),
                 height: marker.height.toFixed(2),
                 area: (marker.width * marker.height).toFixed(2)
-            }
+            },
+            hsvColor: marker.hsvColor || "N/A", // Assuming hsvColor is stored in marker object
+            
+            verticalDistance: recalculateDistances()
+                .filter(distance => distance.marker1 === index + 1 || distance.marker2 === index + 1)
+                .map(distance => ({
+                    markerPair: `M${distance.marker1} - M${distance.marker2}`,
+                    distance_inches: distance.distance_inches.toFixed(2)
+                }))
         };
     });
 
-    // Recalculate distances to include them in the JSON
-    const distancesData = recalculateDistances();
+    // Optionally, recalculate marker-to-marker distances if required
+    let distancesData = [];
+    if (includeMarkerToMarkerDistances) {
+        distancesData = recalculateDistances().map(distance => ({
+            marker1: distance.marker1,
+            marker2: distance.marker2,
+            distance_inches: distance.distance_inches.toFixed(2)
+        }));
+    }
 
     // Combine markers and distances into one object
     const jsonData = {
         markers: markersData,
-        distances: distancesData.map(distance => ({
-            marker1: distance.marker1,
-            marker2: distance.marker2,
-            distance_inches: distance.distance_inches.toFixed(2)
-        }))
+        ...(includeMarkerToMarkerDistances && { distances: distancesData })
     };
 
     // Convert the JSON object to a string
@@ -141,6 +139,7 @@ function downloadMarkersAsJSON() {
     link.download = 'markers_data.json';
     link.click();
 }
+
 
 // Event listener for the download button
 document.getElementById('download-json-button').addEventListener('click', downloadMarkersAsJSON);
