@@ -1,5 +1,7 @@
 // markerCalculations.js
 var distances = [];  // Global array to store distances between markers
+var zeroPointIndex = null; // Index of the zero point marker
+var zeroPointDimension = null; // Real-world dimension of the zero point
 
 // Update marker and distance lists
 function updateMarkerInfo() {
@@ -15,86 +17,183 @@ function updateMarkerInfo() {
     updateDistanceList(distances); // Update the distances
 }
 
-// Function to update the marker list
 function updateMarkerList() {
     const markerList = document.getElementById('marker-list');
-    markerList.innerHTML = ''; // Clear the existing marker list content
+    markerList.innerHTML = ''; // Clear existing content
 
-    // Populate marker list with clickable divs
     rectangles.forEach((marker, index) => {
         const markerDiv = document.createElement('div');
-        markerDiv.classList.add('clickable-div'); // Add class for styling
+        markerDiv.classList.add('clickable-div');
 
-        // Ensure marker information is properly displayed with the correct index
-        markerDiv.textContent = `M${index + 1} (X: ${marker.x ? marker.x.toFixed(0) : 'N/A'}, Y: ${marker.y ? marker.y.toFixed(0) : 'N/A'})`;
+        // Check if this marker is the zero point
+        const isZeroPoint = zeroPointIndex === index;
+
+        // Create content for the marker div
+        markerDiv.innerHTML = `
+            M${index + 1} (X: ${marker.x.toFixed(0)}, Y: ${marker.y.toFixed(0)})
+            ${isZeroPoint ? '<span style="color: red;"> [Zero Point]</span>' : ''}
+        `;
         markerDiv.addEventListener('click', () => highlightMarker(index));
         markerList.appendChild(markerDiv);
     });
 
-    // Ensure the marker info container is visible
     document.getElementById('marker-info-container').style.display = 'block';
 }
+
+// New function to update the marker tools
+function updateMarkerTools() {
+    const markerTools = document.getElementById('marker-tools');
+    markerTools.innerHTML = ''; // Clear existing content
+
+    if (selectedRectIndex !== null) {
+        const isZeroPoint = zeroPointIndex === selectedRectIndex;
+
+        const zeroPointButton = document.createElement('button');
+        zeroPointButton.textContent = isZeroPoint ? 'Unset Zero Point' : 'Set as Zero Point';
+        zeroPointButton.classList.add("nav-button", "neon-blue-gradient-border");
+        zeroPointButton.addEventListener('click', () => setZeroPoint(selectedRectIndex));
+
+        markerTools.appendChild(zeroPointButton);
+    } else {
+        // Display a message when no marker is selected
+        markerTools.innerHTML = '<p>No marker selected</p>';
+    }
+}
+
+
+function setZeroPoint(index) {
+    if (zeroPointIndex === index) {
+        // Unset the zero point
+        zeroPointIndex = null;
+        zeroPointDimension = null;
+    } else {
+        zeroPointIndex = index;
+        promptZeroPointDimensions();
+    }
+    updateMarkerInfo();
+    highlightMarker(index); // Update the marker tools and details
+    drawAll();
+}
+
+function promptZeroPointDimensions() {
+    // Show the modal
+    const modal = document.getElementById('zeroPointModal');
+    const closeModalBtn = document.getElementById('closeZeroPointModal');
+    const saveBtn = document.getElementById('saveZeroPointDimension');
+    const inputField = document.getElementById('zeroPointDimensionInput');
+
+    modal.style.display = 'block';
+
+    // Clear previous input
+    inputField.value = '';
+
+    // Close modal when 'x' is clicked
+    closeModalBtn.onclick = function() {
+        modal.style.display = 'none';
+        // Unset the zero point if dimensions are not provided
+        zeroPointIndex = null;
+        zeroPointDimension = null;
+        updateMarkerInfo();
+        drawAll();
+    }
+
+    // Close modal when user clicks outside of it
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            zeroPointIndex = null;
+            zeroPointDimension = null;
+            updateMarkerInfo();
+            drawAll();
+        }
+    }
+
+    // Save dimensions when 'Save' button is clicked
+    saveBtn.onclick = function() {
+        const dimension = parseFloat(inputField.value);
+        if (isNaN(dimension) || dimension <= 0) {
+            alert('Please enter a valid number greater than zero.');
+        } else {
+            zeroPointDimension = dimension;
+            modal.style.display = 'none';
+            // Recalculate distances with the new zero point
+            distances = recalculateDistances();
+            updateDistanceList(distances);
+            drawAll();
+        }
+    }
+}
+
+
 
 // Function to update the distance list
 function updateDistanceList(distances = []) {
     const distanceList = document.getElementById('distance-list');
-    distanceList.innerHTML = ''; // Clear the existing distance list content
+    distanceList.innerHTML = ''; // Clear existing content
 
-    // Populate distance list with clickable divs
+    if (zeroPointIndex === null || zeroPointDimension === null) {
+        distanceList.innerHTML = '<p>Please set a zero point to calculate distances.</p>';
+        return;
+    }
+
+    if (distances.length === 0) {
+        distanceList.innerHTML = '<p>No distances measured</p>';
+        return;
+    }
+
     distances.forEach((distance) => {
-        if (distance.marker1 !== undefined && distance.marker2 !== undefined && !isNaN(distance.distance_inches)) {
-            const distanceDiv = document.createElement('div');
-            distanceDiv.classList.add('clickable-div'); // Add class for styling
-            distanceDiv.innerHTML = `M${distance.marker1} - M${distance.marker2}: ${distance.distance_inches.toFixed(2)} inches`;
-            distanceDiv.addEventListener('click', () => highlightLine(distance));
-            distanceList.appendChild(distanceDiv);
-        } else {
-            console.error("Error in distance object:", distance);  // Log any undefined or incorrect distance objects
-        }
+        const distanceDiv = document.createElement('div');
+        distanceDiv.classList.add('clickable-div');
+        distanceDiv.innerHTML = `Vertical Distance from Zero Point (M${distance.marker1}) to M${distance.marker2}: ${distance.distance_inches.toFixed(2)} inches`;
+        distanceDiv.addEventListener('click', () => highlightLine(distance));
+        distanceList.appendChild(distanceDiv);
     });
 }
 
-// Function to recalculate distances between markers
+
+// Function to recalculate distances between markers using a single scale factor
 function recalculateDistances() {
     const distances = [];
-    if (rectangles.length < 2) {
+    if (rectangles.length < 2 || zeroPointIndex === null || zeroPointDimension === null) {
         return distances;
     }
 
-    // Compute average marker diameter in pixels
-    const marker_diameter_in_pixels = rectangles.reduce((sum, marker) => sum + marker.width, 0) / rectangles.length;
-    const marker_diameter_in_inches = parseFloat(document.getElementById('markerSize').value) || 5; // Default to 5 inches if not set
+    // Get the zero point marker
+    const zeroMarker = rectangles[zeroPointIndex];
+    const zeroDiameterPixels = (zeroMarker.width + zeroMarker.height) / 2;
 
-    // Calculate scale factor (inches per pixel)
-    const scale_factor = marker_diameter_in_inches / marker_diameter_in_pixels;
-    console.log(`Marker diameter in pixels: ${marker_diameter_in_pixels}, scale factor: ${scale_factor} inches per pixel`);
+    // Calculate scale factor based on the known size of the zero point
+    const zeroPointScaleFactor = zeroPointDimension / zeroDiameterPixels;
 
-    for (let i = 0; i < rectangles.length; i++) {
-        for (let j = i + 1; j < rectangles.length; j++) {
-            const marker1 = i + 1;  // Set marker1 to the index+1
-            const marker2 = j + 1;  // Set marker2 to the index+1
-            const marker1Position = rectangles[i];
-            const marker2Position = rectangles[j];
-            const pixel_distance = Math.sqrt(
-                Math.pow(marker2Position.x - marker1Position.x, 2) + Math.pow(marker2Position.y - marker1Position.y, 2)
-            );
-            if (pixel_distance === 0) {
-                console.warn(`Markers ${i + 1} and ${j + 1} are overlapping!`);
-            }
-            const distance_inches = pixel_distance * scale_factor;
+    console.log(`Zero Point Scale Factor: ${zeroPointScaleFactor.toFixed(4)} inches per pixel`);
+
+    // Loop through each marker to calculate its distance from the zero point
+    rectangles.forEach((marker, index) => {
+        if (index !== zeroPointIndex) {
+            // Calculate the vertical distance (difference in Y-coordinates)
+            const pixelDistanceY = Math.abs((marker.y + marker.height / 2) - (zeroMarker.y + zeroMarker.height / 2));
+
+            // Convert pixel distance to real-world distance using the zero point's scale factor
+            const distanceInches = pixelDistanceY * zeroPointScaleFactor;
 
             distances.push({
-                marker1,  // Add correct marker indices
-                marker2,  // Add correct marker indices
-                distance_inches
+                marker1: zeroPointIndex + 1,
+                marker2: index + 1,
+                distance_inches: parseFloat(distanceInches.toFixed(2)),
+                pixel_distance: pixelDistanceY, 
+                startX: marker.x + marker.width / 2,
+                startY: marker.y + marker.height / 2,
+                endX: zeroMarker.x + zeroMarker.width / 2,
+                endY: zeroMarker.y + zeroMarker.height / 2
             });
 
-            // Log the distance calculation to ensure it's working
-            console.log(`Marker ${marker1} to Marker ${marker2}: ${distance_inches.toFixed(2)} inches`);
+            console.log(`Vertical distance from Zero Point (M${zeroPointIndex + 1}) to M${index + 1}: ${distanceInches.toFixed(2)} inches`);
         }
-    }
+    });
+
     return distances;
 }
+
 
 // Function to highlight a specific marker on the canvas
 function highlightMarker(index) {
@@ -104,40 +203,49 @@ function highlightMarker(index) {
     const clickedRect = rectangles[selectedRectIndex];
     const area_pixels = clickedRect.width * clickedRect.height;
 
-    // Compute scale factor (inches per pixel)
-    const marker_diameter_in_pixels = rectangles.reduce((sum, marker) => sum + marker.width, 0) / rectangles.length;
-    const marker_diameter_in_inches = parseFloat(document.getElementById('markerSize').value) || 5; // Default to 5 inches if not set
-    const scale_factor = marker_diameter_in_inches / marker_diameter_in_pixels;
+    let verticalDistanceInches = null;
 
-    // Convert measurements to inches
-    const width_inches = clickedRect.width * scale_factor;
-    const height_inches = clickedRect.height * scale_factor;
-    const area_inches = area_pixels * scale_factor * scale_factor;
+    if (zeroPointIndex !== null && zeroPointDimension !== null && zeroPointIndex !== selectedRectIndex) {
+        // Calculate vertical distance
+        const zeroMarker = rectangles[zeroPointIndex];
+        const zeroDiameterPixels = (zeroMarker.width + zeroMarker.height) / 2;
+        const scaleFactor = zeroPointDimension / zeroDiameterPixels;
+        const pixelDistanceY = Math.abs(clickedRect.y - zeroMarker.y);
+        verticalDistanceInches = pixelDistanceY * scaleFactor;
+    }
 
     // Update the marker details section with the clicked marker's details
     document.getElementById("marker-details").innerHTML = `
         <p>Marker ${selectedRectIndex + 1} Details:</p>
         <p>X: ${clickedRect.x.toFixed(2)} px</p>
         <p>Y: ${clickedRect.y.toFixed(2)} px</p>
-        <p>Width: ${clickedRect.width.toFixed(2)} px (${width_inches.toFixed(2)} in)</p>
-        <p>Height: ${clickedRect.height.toFixed(2)} px (${height_inches.toFixed(2)} in)</p>
-        <p>Area: ${area_pixels.toFixed(2)} px² (${area_inches.toFixed(2)} in²)</p>
+        <p>Width: ${clickedRect.width.toFixed(2)} px</p>
+        <p>Height: ${clickedRect.height.toFixed(2)} px</p>
+        <p>Area: ${area_pixels.toFixed(2)} px²</p>
+        ${verticalDistanceInches !== null ? `<p>Vertical Distance from<br> Zero Point: ${verticalDistanceInches.toFixed(2)} inches</p>` : ''}
+        ${selectedRectIndex === zeroPointIndex ? '<p style="color: red;">This is the Zero Point Marker</p>' : ''}
     `;
+
+    // Update the marker tools section
+    updateMarkerTools();
 }
+
+
 
 // Function to highlight a specific line between markers on the canvas
 function highlightLine(distance) {
-    const { marker1, marker2 } = distance;
     selectedRectIndex = null; // Deselect any previously selected marker
     drawAll();
 
-    // Highlight the line by drawing it again in a different color or thickness
-    const marker1Position = rectangles[marker1 - 1];
-    const marker2Position = rectangles[marker2 - 1];
+    // Highlight the vertical line by drawing it again in a different color or thickness
+    context.save();
+    context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
     context.beginPath();
-    context.moveTo(marker1Position.x * scale + offsetX, marker1Position.y * scale + offsetY);
-    context.lineTo(marker2Position.x * scale + offsetX, marker2Position.y * scale + offsetY);
+    context.moveTo(distance.startX, distance.startY);
+    context.lineTo(distance.endX, distance.endY);
     context.strokeStyle = 'red'; // Highlight the line in red
-    context.lineWidth = 12; // Make the line thicker
+    context.lineWidth = 4 / scale; // Make the line thicker
     context.stroke();
+    context.restore();
 }
+

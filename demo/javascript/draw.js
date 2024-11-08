@@ -1,73 +1,85 @@
-// draw.js
-
 // Function to draw everything on the canvas
 function drawAll() {
-    // clear the canvas before anything
+    // Clear the canvas before drawing
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // save the context state
-    context.save()
+    // Save the context state
+    context.save();
 
-    // apply pan and zoom transformations
+    // Apply pan and zoom transformations
     context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
 
-    // draw the transformed image
+    // Draw the transformed image as the background layer
     context.drawImage(image, 0, 0, image.width, image.height);
 
-    // adjust lines and text with scale
-    context.lineWidth = lineWidth / scale;
-    context.font = `${textSize / scale}px Arial`;
+    // Adjust line and text sizes based on scale
+    const effectiveLineWidth = Math.max(lineWidth / scale, 1); // Minimum 1px line width for visibility
+    const effectiveTextSize = Math.max(textSize / scale, 8); // Minimum 8px font size for legibility
 
-    // clear line data
-    lines.length = 0;
+    // Draw the markers with contours first, so they appear below other elements
+    drawMarkers(effectiveLineWidth, effectiveTextSize);
 
-    // Draw lines between markers and label them with their length
-    for (let i = 0; i < rectangles.length; i++) {
-        for (let j = i + 1; j < rectangles.length; j++) {
-            const marker1 = rectangles[i];
-            const marker2 = rectangles[j];
+    // Draw the green horizontal zero axis line next
+    drawZeroAxisLine(effectiveLineWidth);
 
-            // Draw a thicker green line between the markers
-            context.beginPath();
-            context.moveTo(marker1.x, marker1.y);
-            context.lineTo(marker2.x, marker2.y);
-            context.strokeStyle = 'green';
-            context.lineWidth = 8 / scale; // Adjust line width for visibility while zoomed
-            context.stroke();
+    // Draw vertical lines from markers to the zero axis last
+    drawVerticalLinesToZeroAxis(effectiveLineWidth, effectiveTextSize);
 
-            // Calculate the distance between the markers
-            const distance = Math.sqrt(
-                Math.pow(marker2.x - marker1.x, 2) + Math.pow(marker2.y - marker1.y, 2)
-            );
+    // Restore the context state
+    context.restore();
+}
 
-            // Label the line with the distance (small green text without background)
-            const midX = (marker1.x + marker2.x) / 2;
-            const midY = (marker1.y + marker2.y) / 2;
-            context.font = '10px Arial'; // Set smaller font for distance label
-            context.fillStyle = 'green';
-            context.fillText(`${distance.toFixed(1)} px`, midX, midY);
+function rgbToHsv(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, v = max;
 
-            // Store line data for click handling
-            lines.push({
-                marker1: `M${i + 1}`,
-                marker2: `M${j + 1}`,
-                distance: distance.toFixed(1),
-                startX: marker1.x,
-                startY: marker1.y,
-                endX: marker2.x,
-                endY: marker2.y
-            });
+    const d = max - min;
+    s = max === 0 ? 0 : d / max;
+
+    if (max === min) {
+        h = 0; // achromatic
+    } else {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
         }
+        h /= 6;
     }
 
-    // Draw the markers with labels
+    return { h: (h * 360).toFixed(1), s: (s * 100).toFixed(1), v: (v * 100).toFixed(1) };
+}
+
+
+// Function to draw markers with labels
+function drawMarkers(lineWidth, textSize) {
     rectangles.forEach((rect, index) => {
-        context.strokeStyle = index === selectedRectIndex ? "red" : "green";
+        // Get HSV color from an example pixel within the marker area
+        const markerColorSample = context.getImageData(rect.x + rect.width / 2, rect.y + rect.height / 2, 1, 1).data;
+        const [r, g, b] = markerColorSample;
+
+        // Convert RGB to HSV
+        const hsvColor = rgbToHsv(r, g, b);
+
+        // Store HSV color in the marker object
+        rect.hsvColor = hsvColor;
+        context.strokeStyle = "blue";
         context.lineWidth = lineWidth;
 
-        // Draw the contour or the bounding rectangle of the marker
-        const contour = rect.contour;
+        if (index === zeroPointIndex) {
+            context.strokeStyle = "red";
+            context.lineWidth = Math.max(4 / scale, 2); // Minimum width to keep it highlighted
+        } else if (index === selectedRectIndex) {
+            context.strokeStyle = "green";
+            context.lineWidth = Math.max(3 / scale, 1.5);
+        }
 
+        // Draw the contour or bounding rectangle of the marker
+        const contour = rect.contour;
         if (contour && contour.length > 0) {
             context.beginPath();
             context.moveTo(contour[0][0], contour[0][1]);
@@ -75,28 +87,20 @@ function drawAll() {
                 context.lineTo(point[0], point[1]);
             });
             context.closePath();
+            context.stroke();
         } else {
-            context.strokeRect(
-                rect.x,
-                rect.y,
-                rect.width * scale,
-                rect.height * scale
-            );
+            context.strokeRect(rect.x, rect.y, rect.width, rect.height);
         }
-        context.stroke();
 
-        // Draw the label for each marker (e.g., "M1", "M2", etc.)
+        // Draw the label for each marker
         const label = `M${index + 1}`;
         const labelX = rect.x + padding;
         const labelY = rect.y - padding - textSize;
 
-        // Set the font before measuring the text
         context.font = `${textSize}px Arial`;
-
-        // Measure the text width after setting the font
         const labelWidth = context.measureText(label).width;
 
-        // Draw the black background for the label using the measured width
+        // Draw the black background for the label
         context.fillStyle = "black";
         context.fillRect(labelX - 2, labelY - textSize - 2, labelWidth + 4, textSize + 4);
 
@@ -104,7 +108,64 @@ function drawAll() {
         context.fillStyle = "white";
         context.fillText(label, labelX, labelY);
     });
+}
 
-    context.restore();
+// Function to draw the green horizontal zero axis line
+function drawZeroAxisLine(lineWidth) {
+    if (zeroPointIndex !== null) {
+        const zeroMarker = rectangles[zeroPointIndex];
+        const zeroY = zeroMarker.y + zeroMarker.height / 2;
+
+        context.beginPath();
+        context.moveTo(0, zeroY);
+        context.lineTo(image.width, zeroY);
+        context.strokeStyle = 'green';
+        context.lineWidth = lineWidth;
+        context.stroke();
+    }
+}
+
+// Function to draw vertical lines from markers to the zero axis
+function drawVerticalLinesToZeroAxis(lineWidth, textSize) {
+    if (zeroPointIndex !== null && zeroPointDimension !== null) {
+        const zeroMarker = rectangles[zeroPointIndex];
+        const zeroY = zeroMarker.y + zeroMarker.height / 2;
+
+        rectangles.forEach((marker, index) => {
+            if (index !== zeroPointIndex) {
+                const markerXCenter = marker.x + marker.width / 2;
+                const markerY = marker.y + marker.height / 2;
+
+                // Draw vertical line from marker to the zero axis
+                context.beginPath();
+                context.moveTo(markerXCenter, markerY);
+                context.lineTo(markerXCenter, zeroY);
+                context.strokeStyle = 'yellow';
+                context.lineWidth = lineWidth;
+                context.stroke();
+
+                // Label the line with the vertical distance
+                const distanceObj = distances.find(d => d.marker2 === index + 1);
+                if (distanceObj) {
+                    const distanceText = `${distanceObj.distance_inches.toFixed(2)}"`;
+                    const midX = markerXCenter + (5 / scale);
+                    const midY = (markerY + zeroY) / 2;
+
+                    // Set font size for the text
+                    context.font = `${textSize}px Arial`;
+                    const textWidth = context.measureText(distanceText).width;
+                    const textHeight = textSize;
+
+                    // Draw a translucent black rectangle as the background
+                    context.fillStyle = "rgba(0, 0, 0, 0.7)"; // 70% opacity
+                    context.fillRect(midX - 2, midY - textHeight, textWidth + 4, textHeight + 4);
+
+                    // Draw the measurement text in yellow on top of the rectangle
+                    context.fillStyle = 'yellow';
+                    context.fillText(distanceText, midX, midY);
+                }
+            }
+        });
+    }
 }
 

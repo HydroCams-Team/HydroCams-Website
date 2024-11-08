@@ -1,17 +1,80 @@
-// submitImageProcessing.js
+let colorArray = []; // Array to store selected colors
+
+function updateColorArray() {
+    colorArray = Array.from(document.getElementsByClassName("color-input")).map(picker => picker.value);
+}
+
+function updateRemoveButtons() {
+    const removeButtons = document.querySelectorAll('.remove-color');
+    removeButtons.forEach(button => {
+        button.style.display = colorArray.length > 1 ? 'inline' : 'none';
+    });
+}
+
+document.getElementById("addColorButton").addEventListener("click", () => {
+    const colorPickerContainer = document.getElementById("colorPickerContainer");
+
+    // Create a container div for the color picker and the remove button
+    const colorItem = document.createElement("div");
+    colorItem.className = "color-item";
+
+    // Create the color picker input
+    const newColorPicker = document.createElement("input");
+    newColorPicker.type = "color";
+    newColorPicker.className = "color-input";
+    newColorPicker.name = `colorPicker${colorArray.length + 1}`;
+    newColorPicker.value = "#ff0000"; // Set default color
+
+    // Update color array with new color
+    colorArray.push(newColorPicker.value);
+
+    // Add an event listener to update the color array whenever a color is changed
+    newColorPicker.addEventListener("input", (event) => {
+        const index = Array.from(colorPickerContainer.children).indexOf(colorItem);
+        colorArray[index] = event.target.value;
+    });
+
+    // Create the "X" button to remove the color picker
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "remove-color";
+    removeButton.textContent = "X";
+    removeButton.addEventListener("click", () => {
+        // Remove the color picker and update the array
+        colorItem.remove();
+        updateColorArray();
+        updateRemoveButtons();
+    });
+
+    // Append the color picker and remove button to the color item div
+    colorItem.appendChild(newColorPicker);
+    colorItem.appendChild(removeButton);
+
+    // Append the color item div to the container
+    colorPickerContainer.appendChild(colorItem);
+
+    // Update the remove button visibility based on the number of color inputs
+    updateRemoveButtons();
+});
+
+// Initialize color array and remove button visibility
+updateColorArray();
+updateRemoveButtons();
 
 // Function to submit the current image for processing
 function submitImageForProcessing() {
     const file = uploadedFiles[currentImageIndex]; // Get the current image
-    const selectedColor = document.getElementById('colorPicker').value;  // Get the selected color
     const selectedContourArea = document.getElementById('contourArea').value;  // Get the selected contour area
     const markerSize = document.getElementById('markerSize').value;  // Get the marker size in inches
 
+    // Update colorArray with values from color inputs
+    colorArray = Array.from(document.getElementsByClassName("color-input")).map(picker => picker.value);
+
     if (file) {
         console.log("Uploading file:", file);
-        console.log("Selected color:", selectedColor);  // Log the selected color
-        console.log("Selected contour area:", selectedContourArea);  // Log the selected contour area
-        console.log("Marker size (in inches):", markerSize);  // Log the marker size
+        console.log("Selected colors:", colorArray);
+        console.log("Selected contour area:", selectedContourArea);
+        console.log("Marker size (in inches):", markerSize);
 
         // Add blur and show loading spinner
         document.getElementById("image-canvas").classList.add("blurred");
@@ -19,9 +82,9 @@ function submitImageForProcessing() {
 
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("color", selectedColor);  // Append selected color
-        formData.append("contour_area", selectedContourArea);  // Append selected contour area
-        formData.append("marker_size", markerSize);  // Append marker size to form data
+        colorArray.forEach(color => formData.append("colors[]", color)); // Append each color individually
+        formData.append("contour_area", selectedContourArea);
+        formData.append("marker_size", markerSize);
 
         // Send the image and selected color to the Flask server for processing
         fetch("http://" + FLASK_HOST + ":" + FLASK_PORT + "/upload", {
@@ -79,6 +142,7 @@ function submitImageForProcessing() {
         alert("Please upload an image first!");
     }
 }
+
 
 // Function to add new markers to the existing ones (without clearing)
 function addMarkersToExisting(newMarkers) {

@@ -1,10 +1,8 @@
-// uiControls.js
-
 const submitPrefsBtn = document.getElementById('submit-prefs');
-const colorPicker = document.getElementById('colorPicker');
+const colorPickerContainer = document.getElementById('colorPickerContainer');
 
-// Initialize variables to store selected preferences
-selectedColor = colorPicker.value;
+// Initialize array to store selected colors
+let colors = Array.from(document.getElementsByClassName('color-input')).map(input => input.value);
 
 // Get the contour input field and preview button
 const contourInput = document.getElementById('contourArea');
@@ -70,25 +68,22 @@ contourInput.addEventListener('input', () => {
 // Event handler for color selection submission
 document.getElementById('colorForm').addEventListener('submit', function(event) {
     event.preventDefault();  // Prevent the default form submission
-    selectedColor = colorPicker.value;  // Update selected color
+
+    // Collect all current color values into the colors
+    colors = Array.from(document.getElementsByClassName('color-input')).map(input => input.value);
 
     submitPrefsBtn.textContent = 'Saved';
     submitPrefsBtn.disabled = true;  // Disable the button
     submitPrefsBtn.classList.add('grayed-out');
 
     // Save preferences for later CV processing
-    console.log("Selected color for CV processing: " + selectedColor);
+    console.log("Selected colors for CV processing: ", colors);
     console.log("Selected contour area for CV processing: " + contourInput.value);
 });
 
 // Re-enable the submit button if the color is changed
-colorPicker.addEventListener('input', function() {
+colorPickerContainer.addEventListener('input', function() {
     submitPrefsBtn.textContent = 'Save';
     submitPrefsBtn.disabled = false;  // Enable the button
     submitPrefsBtn.classList.remove('grayed-out');  // Remove the gray-out class
-});
-
-// Update color preview dynamically when color is selected
-document.getElementById('colorPicker').addEventListener('input', function(event) {
-    selectedColor = event.target.value;
 });

@@ -22,7 +22,7 @@
         <input type="file" id="multi-file-input" accept="image/*" style="display: none;" multiple>
         
         <button class="nav-button neon-blue-gradient-border" id="upload-button">Upload Image</button>
-        <button class="nav-button neon-blue-gradient-border" id="upload-multiple-button">Upload Multiple Images</button>
+        <button class="nav-button neon-blue-gradient-border" id="reset-button" style="display: none">Reset</button>
         
         <div id="image-container" class="neon-blue-gradient-border" style="position: relative;">
           <canvas id="image-canvas"></canvas>
@@ -42,12 +42,15 @@
         <h3>CV Options</h3>
     
         <form id="colorForm">
-          <div class="form-group">
-            <label for="colorPicker">Select a color:</label><br>
-            <input type="color" id="colorPicker" name="colorPicker" value="#ff0000"> <!-- Default is red -->
+          <div class="form-group" id="colorPickerContainer" style="height: 150px; overflow-y: scroll; border-bottom: none !important;">
+            <label for="colorPicker">Select Color(s):</label>
+            <div class="color-item">
+              <input type="color" class="color-input" name="colorPicker" value="#ff0000"> <!-- Default is red -->
+            </div>
           </div>
+          <button type="button" id="addColorButton">+</button>
 
-          <div class="form-group">
+          <div class="form-group" style="border-top: 1px solid #0056b3; margin-top: 15px;">
             <label for="markerSize">Marker Diameter (in inches):</label>
             <input class="num-input" type="number" id="markerSize" value="5" step="0.1">
           </div>
@@ -84,6 +87,10 @@
         <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button> -->
 
         <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
+
+        <div id="marker-tools">
+          
+        </div>
       
         <h3> Marker Details </h3>
         <div id="marker-details">
@@ -104,6 +111,18 @@
 <script src="javascript/canvasInteractions.js"></script>
 <script src="javascript/markerCalculations.js"></script>
 <script src="javascript/draw.js"></script>
+
+
+  <!-- Zero Point Dimension Modal -->
+<div id="zeroPointModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeZeroPointModal">&times;</span>
+    <h2>Enter Zero Point Dimensions</h2>
+    <label for="zeroPointDimensionInput">Real-world diameter (in inches):</label>
+    <input type="number" id="zeroPointDimensionInput" min="0" step="0.01">
+    <button id="saveZeroPointDimension">Save</button>
+  </div>
+</div>
 
   </body>
 </html>
