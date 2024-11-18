@@ -64,7 +64,8 @@ updateRemoveButtons();
 // Function to submit the current image for processing
 function submitImageForProcessing() {
     const file = uploadedFiles[currentImageIndex]; // Get the current image
-    const selectedContourArea = document.getElementById('contourArea').value;  // Get the selected contour area
+    const selectedContourArea = document.getElementById('contourArea').value;  // Get the selected contour area (min area)
+    const selectedContourAreaMax = document.getElementById('contourAreaMax').value; // Get the selected contour upper bound (max area)
     const markerSize = document.getElementById('markerSize').value;  // Get the marker size in inches
 
     // Update colorArray with values from color inputs
@@ -73,7 +74,8 @@ function submitImageForProcessing() {
     if (file) {
         console.log("Uploading file:", file);
         console.log("Selected colors:", colorArray);
-        console.log("Selected contour area:", selectedContourArea);
+        console.log("Selected contour area (min):", selectedContourArea);
+        console.log("Selected contour area (max):", selectedContourAreaMax);
         console.log("Marker size (in inches):", markerSize);
 
         // Add blur and show loading spinner
@@ -83,7 +85,8 @@ function submitImageForProcessing() {
         const formData = new FormData();
         formData.append("file", file);
         colorArray.forEach(color => formData.append("colors[]", color)); // Append each color individually
-        formData.append("contour_area", selectedContourArea);
+        formData.append("contour_area", selectedContourArea); // Min contour area
+        formData.append("contour_area_max", selectedContourAreaMax); // Max contour area
         formData.append("marker_size", markerSize);
 
         // Send the image and selected color to the Flask server for processing
@@ -108,7 +111,7 @@ function submitImageForProcessing() {
             addMarkersToExisting(data.markers);
 
             const imageUrl = data.image_url;
-            const fullImageUrl = "http://" + FLASK_HOST + HTTP_SERVER_PORT_STRING + imageUrl;
+            const fullImageUrl = "http://54.218.238.180" + imageUrl;
 
             console.log(fullImageUrl);
 

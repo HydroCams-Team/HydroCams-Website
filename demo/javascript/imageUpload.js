@@ -9,11 +9,11 @@ document.getElementById("file-input").addEventListener("change", (event) => {
     uploadedFiles = [event.target.files[0]]; // Store single uploaded file
     currentImageIndex = 0;
     updateCanvasImage(currentImageIndex);
-    updateNavigationButtons(); // Update button visibility
 
     if (uploadedFiles.length > 0) {
         document.getElementById("submit-button").style.display = 'inline-block';
         document.getElementById("reset-button").style.display = 'inline-block';
+        document.getElementById("upload-button").style.display = 'none';
     } else {
         document.getElementById("submit-button").style.display = 'none';
         document.getElementById("reset-button").style.display = 'none';
@@ -49,40 +49,6 @@ function updateCanvasImage(index) {
         };
         reader.readAsDataURL(file);
     }
-}
-
-// Arrow navigation for multiple images
-document.getElementById("prev-image").addEventListener("click", () => {
-    if (currentImageIndex > 0) {
-        currentImageIndex--;
-        updateCanvasImage(currentImageIndex);
-        updateNavigationButtons();
-    }
-});
-
-document.getElementById("next-image").addEventListener("click", () => {
-    if (currentImageIndex < uploadedFiles.length - 1) {
-        currentImageIndex++;
-        updateCanvasImage(currentImageIndex);
-        updateNavigationButtons();
-    }
-});
-
-// Update navigation buttons visibility
-function updateNavigationButtons() {
-    const prevButton = document.getElementById("prev-image");
-    const nextButton = document.getElementById("next-image");
-    const imageCounter = document.getElementById('image-counter');
-    
-    // Show/hide buttons based on the number of uploaded images
-    if (uploadedFiles.length > 1) {
-        prevButton.style.display = currentImageIndex > 0 ? "block" : "none";
-        nextButton.style.display = currentImageIndex < uploadedFiles.length - 1 ? "block" : "none";
-    } else {
-        prevButton.style.display = "none";
-        nextButton.style.display = "none";
-    }
-    imageCounter.style.display = uploadedFiles.length > 1 ? "block" : "none";
 }
 
 // Function to generate JSON file and trigger download
