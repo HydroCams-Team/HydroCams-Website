@@ -22,7 +22,6 @@
         <input type="file" id="multi-file-input" accept="image/*" style="display: none;" multiple>
         
         <button class="nav-button neon-blue-gradient-border" id="upload-button">Upload Image</button>
-        <button class="nav-button neon-blue-gradient-border" id="reset-button" style="display: none">Reset</button>
         
         <div id="image-container" class="neon-blue-gradient-border" style="position: relative;">
           <canvas id="image-canvas"></canvas>
@@ -34,6 +33,7 @@
       
 
         <button class="nav-button neon-blue-gradient-border" id="submit-button" style="margin-top: 10px; display: none;">Submit for CV Processing</button>
+        <button class="nav-button neon-blue-gradient-border" id="reset-button" style="display: none">Reset</button>
         <button class="nav-button neon-blue-gradient-border" id="sfm-upload-button" style="margin-top: 10px; display:none;">Submit Multiple for SfM</button>
       
     </div>
@@ -42,28 +42,37 @@
         <h3>CV Options</h3>
     
         <form id="colorForm">
-          <div class="form-group" id="colorPickerContainer" style="height: 150px; overflow-y: scroll; border-bottom: none !important;">
+          <div class="form-group" id="colorPickerContainer" style="height: 125px; overflow-y: auto; border-bottom: none !important;">
             <label for="colorPicker">Select Color(s):</label>
             <div class="color-item">
-              <input type="color" class="color-input" name="colorPicker" value="#ff0000"> <!-- Default is red -->
+              <input type="color" class="color-input" name="colorPicker" value="#ff0000">
             </div>
           </div>
           <button type="button" id="addColorButton">+</button>
 
-          <div class="form-group" style="border-top: 1px solid #0056b3; margin-top: 15px;">
-            <label for="markerSize">Marker Diameter (in inches):</label>
-            <input class="num-input" type="number" id="markerSize" value="5" step="0.1">
-          </div>
-
-          <!-- Contour Area Threshold -->
-          <div class="form-group">
-            <label for="contourArea">Enter contour lower bound (min area):</label>
-            <input type="number" class="num-input" id="contourArea" name="contourArea" min="0" value="350"> <!-- Default is 350 -->
-     
+          <div class="form-group" style="border-top: 1px solid #0056b3; margin-top: 15px; height: 125px; display: flex; justify-content: center; align-items: center;">
+            <label for="markerSize" style="margin-right: 10px;">Marker Diameter:</label>
+            <div style="display: flex; align-items: center; width: 70%; justify-content: center;">
+                <input class="num-input" type="number" id="markerSize" value="5" step="0.1" style="flex: 1; margin-right: 5px;">
+                <span>inches</span>
+            </div>        
+        </div>
+        
+          <div class="form-group" style="height: 300px; border-bottom: none">
+            <!-- Contour Area Threshold -->
+            <div style="margin-bottom: 25px;">
+              <label for="contourArea">Min. Contour Area:</label>
+              <input type="number" class="num-input" id="contourArea" name="contourArea" min="0" value="350">
+            </div>
+            
+            <!-- Contour Upper Bound Threshold -->
+            <div style="margin-bottom: 25px;">
+              <label for="contourAreaMax">Max. Contour Area:</label>
+              <input type="number" class="num-input" id="contourAreaMax" name="contourAreaMax" min="0" value="1000">
+            </div>
             <button type="button" id="previewContourBtn" class="nav-button neon-blue-gradient-border">Preview</button>
           </div>
 
-            <button type="submit" id="submit-prefs" class="nav-button neon-blue-gradient-border">Save</button>
         </form>
      </div>
   
@@ -82,16 +91,10 @@
 
       <div id="markup-controls-container" class="controls-container neon-blue-gradient-border">
         <h3> Marker Tools </h3>
-
-        <!-- <button class="nav-button neon-blue-gradient-border" id="draw-button">Enable Drawing</button>
-        <button class="nav-button neon-blue-gradient-border" id="save-button">Save Marker</button> -->
-
         <button class="nav-button neon-blue-gradient-border" id="delete-button">Delete Selected Marker</button>
-
         <div id="marker-tools">
-          
         </div>
-      
+
         <h3> Marker Details </h3>
         <div id="marker-details">
           <p>No marker selected</p>

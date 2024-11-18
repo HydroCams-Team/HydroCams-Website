@@ -186,14 +186,15 @@ textarea {
     flex-direction: column;
     gap: 5px;
     margin-top: 40px;
-    min-height: 650px;
-    max-height: auto;
+    min-height: 700px;
+    max-height: 700px;
     text-align: center;
     margin-right: 25px;
     width: 225px;
     color: white;
     border: 2px solid #0056b3; /* Light blue border around the container */
     border-radius: 8px; /* Rounded corners for a softer look */
+    overflow-y: auto;
 }
 
 .cv-controls-container {
@@ -201,7 +202,7 @@ textarea {
     flex-direction: column; /* Stack items vertically */
     align-items: center; /* Center items horizontally */
     gap: 5px; /* Space between each item */
-    height: 650px; /* Allow the container height to adjust based on its content */
+    height: 700px; /* Allow the container height to adjust based on its content */
     margin-top: 40px;
     text-align: center;
     margin-right: 25px;
@@ -209,12 +210,14 @@ textarea {
     color: white;
     border: 2px solid #0056b3; /* Light blue border around the container */
     border-radius: 8px; /* Rounded corners for a softer look */
+    overflow-y: auto;
 }
 
 .form-group {
     display: flex;
     flex-direction: column; /* Stack label and input vertically */
     align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
     width: 100%; /* Make the form group take up the full width */
     padding: 10px;
     border-bottom: 1px solid #0056b3; /* Light blue separator between items */
