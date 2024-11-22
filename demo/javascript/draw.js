@@ -1,3 +1,6 @@
+let previewMinArea = null; // Store the minimum contour area for preview
+let previewMaxArea = null; // Store the maximum contour area for preview
+
 // Function to draw everything on the canvas
 function drawAll() {
     // Clear the canvas before drawing
@@ -25,8 +28,33 @@ function drawAll() {
     // Draw vertical lines from markers to the zero axis last
     drawVerticalLinesToZeroAxis(effectiveLineWidth, effectiveTextSize);
 
+    // Draw preview circles for min and max contour areas
+    if (previewMinArea !== null) {
+        drawPreviewCircle(previewMinArea, 'yellow');
+    }
+    if (previewMaxArea !== null) {
+        drawPreviewCircle(previewMaxArea, 'orange');
+    }
+
     // Restore the context state
     context.restore();
+}
+
+// Function to draw a preview circle
+function drawPreviewCircle(area, color) {
+    const radius = getCircleRadiusFromArea(area); // Calculate the radius
+    const centerX = image.width / 2; // Center of the canvas (adjust as needed)
+    const centerY = image.height / 2;
+
+    // Calculate dynamic line width based on image size
+    const dynamicLineWidth = Math.max(Math.min(image.width, image.height) * 0.005, 2); // 0.5% of the smaller dimension, minimum 2px
+
+    context.beginPath();
+    context.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    context.strokeStyle = color;
+    context.lineWidth = dynamicLineWidth / scale; // Adjust line width based on zoom
+    context.stroke();
+    context.closePath();
 }
 
 function rgbToHsv(r, g, b) {

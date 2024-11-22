@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 # Global constants
-FLASK_HOST = 'localhost'
+FLASK_HOST = '54.218.238.180'
 FLASK_PORT = 5000
 UPLOAD_FOLDER = 'uploads'
 PROCESSED_FOLDER = 'processed'
@@ -40,10 +40,14 @@ def upload_image():
     if file.filename == '':
         return flask.make_response(flask.jsonify({'error': 'No selected file'}), 400)
 
-    # Retrieve multiple selected colors from form as a list
+    # Retrieve form data
     hex_colors = flask.request.form.getlist('colors[]')
-    contour_area = int(flask.request.form.get('contour_area', 350))  # Default contour area
-    marker_size = float(flask.request.form.get('marker_size', 5))  # Default marker size in inches
+    contour_area = int(flask.request.form.get('contour_area', 350))
+    contour_area_max = flask.request.form.get('contour_area_max')  # Retrieve max contour area
+    if contour_area_max is not None:
+        contour_area_max = int(contour_area_max)  # Convert to int if provided
+
+    marker_size = float(flask.request.form.get('marker_size', 5))
 
     if not hex_colors:
         return flask.make_response(flask.jsonify({'error': 'No colors selected'}), 400)
@@ -55,10 +59,10 @@ def upload_image():
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    # Process image using marker detection
+    # Process image using marker detection with contour area limits
     processed_file_path = os.path.join(PROCESSED_FOLDER, 'processed_' + file.filename)
     image = cv2.imread(file_path)
-    processed_image, detected_markers = detect_markers(image, hsv_colors, contour_area)
+    processed_image, detected_markers = detect_markers(image, hsv_colors, contour_area, contour_area_max)
 
     # Save the processed image
     cv2.imwrite(processed_file_path, processed_image)
@@ -79,12 +83,14 @@ def upload_image():
 
     return flask.jsonify(response)
 
-
-def detect_markers(image, hsv_colors, contour_area):
+def detect_markers(image, hsv_colors, contour_area, contour_area_max=None):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    full_mask = None
+    detected_markers = []
 
-    # Create masks for each HSV color range and combine them
+    # Log the maximum contour area for debugging
+    print(f"Max contour area allowed: {contour_area_max}")
+
+    # Process each color individually to detect markers of each color separately
     for hsv_color in hsv_colors:
         if hsv_color[0] <= 9 or hsv_color[0] >= 171:
             # Define lower wraparound range
@@ -101,7 +107,6 @@ def detect_markers(image, hsv_colors, contour_area):
                 upper_upper_range[0] = 180
             upper_mask = cv2.inRange(hsv, upper_lower_range, upper_upper_range)
 
-            # Combine the wraparound masks
             mask = lower_mask + upper_mask
         else:
             # Non-wraparound range
@@ -109,38 +114,40 @@ def detect_markers(image, hsv_colors, contour_area):
             upper_range = np.array([int(hsv_color[0]) + 10, 255, 255])
             mask = cv2.inRange(hsv, lower_range, upper_range)
 
-        # Combine masks for all colors
-        if full_mask is None:
-            full_mask = mask
-        else:
-            full_mask = cv2.bitwise_or(full_mask, mask)
+        # Process the mask for this color individually
+        result = cv2.bitwise_and(image, image, mask=mask)
+        blurred_image = cv2.GaussianBlur(result, (5, 5), 0)
+        grayscale_blurred_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2GRAY)
+        threshold_image = cv2.threshold(grayscale_blurred_image, 35, 255, cv2.THRESH_BINARY)[1]
 
-    # Clip the image using the combined mask
-    result = cv2.bitwise_and(image, image, mask=full_mask)
-    blurred_image = cv2.GaussianBlur(result, (5, 5), 0)
-    grayscale_blurred_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2GRAY)
-    threshold_image = cv2.threshold(grayscale_blurred_image, 35, 255, cv2.THRESH_BINARY)[1]
+        # Find contours for the current color mask
+        contours = cv2.findContours(threshold_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = imutils.grab_contours(contours)
 
-    # Find contours
-    contours = cv2.findContours(threshold_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = imutils.grab_contours(contours)
+        # Process each contour individually for this color
+        for contour in contours:
+            area = cv2.contourArea(contour)
 
-    detected_markers = []
-    for contour in contours:
-            if cv2.contourArea(contour) >= contour_area:
+            # Check if the contour area is within the specified bounds
+            if contour_area <= area <= (contour_area_max if contour_area_max is not None else float('inf')):
+                # Check if the contour is approximately circular or square
                 x, y, w, h = cv2.boundingRect(contour)
-                (center_x, center_y), radius = cv2.minEnclosingCircle(contour)
-                cv2.circle(image, (int(center_x), int(center_y)), int(radius), (0, 255, 0), 2)
+                aspect_ratio = w / h
+                if 0.8 <= aspect_ratio <= 1.25:  # Roughly circular or square
+                    print(f"Detected contour with area {area} within bounds ({contour_area} - {contour_area_max}) for color {hsv_color}")
+                    (center_x, center_y), radius = cv2.minEnclosingCircle(contour)
 
-                detected_markers.append({
-                    'marker_number': len(detected_markers) + 1,
-                    'x': int(center_x),
-                    'y': int(center_y),
-                    'enclosing_radius': int(radius),
-                    'width': w,   # Ensure width is included
-                    'height': h,  # Ensure height is included
-                    'contour': contour[:, 0, :].tolist()
-                })
+                    detected_markers.append({
+                        'marker_number': len(detected_markers) + 1,
+                        'x': int(center_x),
+                        'y': int(center_y),
+                        'enclosing_radius': int(radius),
+                        'width': w,
+                        'height': h,
+                        'contour': contour[:, 0, :].tolist()
+                    })
+            else:
+                print(f"Contour with area {area} skipped (outside bounds)")
 
     return image, detected_markers
 
@@ -158,8 +165,6 @@ def get_hsv_range(hsv_color):
         upper_range = np.array([int(hsv_color[0]) + 10, 255, 255])
         return lower_range, upper_range
 
-
-# Distance calculation function (unchanged)
 def calculate_distances_between_markers(detected_markers, marker_diameter_in_inches=5):
     distances = []
     if len(detected_markers) < 2:
