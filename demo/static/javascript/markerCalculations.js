@@ -162,6 +162,8 @@ function recalculateDistances() {
     const zeroMarker = rectangles[zeroPointIndex];
     const zeroDiameterPixels = (zeroMarker.width + zeroMarker.height) / 2;
 
+    console.log(zeroMarker)
+
     // Calculate scale factor based on the known size of the zero point
     const zeroPointScaleFactor = zeroPointDimension / zeroDiameterPixels;
 

@@ -90,7 +90,7 @@ function submitImageForProcessing() {
         formData.append("marker_size", markerSize);
 
         // Send the image and selected color to the Flask server for processing
-        fetch("http://" + FLASK_HOST + ":" + FLASK_PORT + "/upload", {
+        fetch("http://localhost:" + FLASK_PORT + "/upload", {
             method: "POST",
             body: formData,
             mode: 'cors',
@@ -111,7 +111,7 @@ function submitImageForProcessing() {
             addMarkersToExisting(data.markers);
 
             const imageUrl = data.image_url;
-            const fullImageUrl = "http://54.218.238.180" + imageUrl;
+            const fullImageUrl = "http://localhost:" + FLASK_PORT + imageUrl;
 
             console.log(fullImageUrl);
 
@@ -159,6 +159,8 @@ function addMarkersToExisting(newMarkers) {
             const distance = Math.sqrt(dx * dx + dy * dy);
             return distance < duplicateThreshold;
         });
+
+        console.log(newMarker)
 
         if (!exists) {
             rectangles.push({
