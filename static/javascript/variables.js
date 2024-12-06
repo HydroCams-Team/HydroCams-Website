@@ -32,7 +32,11 @@ var startPanX, startPanY; // Starting position for panning
 var selectedColor;
 var previewVisible = false; // Track the visibility of the preview circle
 
-// Hosting constants, ENSURE THESE MATCH THE CONSTANTS IN app.py
-const FLASK_HOST = '54.218.238.180';
-const FLASK_PORT = 5000;
-const HTTP_SERVER_PORT_STRING = ':5000';
+// Retrieve constants fron constants.json
+var FLASK_PORT;
+fetch('/static/constants.json')
+  .then(response => response.json())
+  .then(constants => {
+    FLASK_PORT = constants.FLASK_PORT;
+  })
+  .catch(error => console.error('Error loading constants:', error));
