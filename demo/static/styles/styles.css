@@ -37,7 +37,7 @@ body {
     margin: 0; 
     padding: 0; 
     box-sizing: border-box;
-    background-image: url('../images/test.jpg');
+    background-image: url('/static/images/test.jpg');
     background-size: cover;
 }
 
