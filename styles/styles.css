@@ -76,7 +76,7 @@ footer {
   }  
 
 .center {
-    background-image: url("/static/images/test.jpg");
+    background-image: url("../images/test.jpg");
     padding: 10px;
     padding-top: 15vh; 
     display: flex;
