@@ -1,5 +1,0 @@
-flask
-flask_cors
-imutils
-numpy
-opencv-python
